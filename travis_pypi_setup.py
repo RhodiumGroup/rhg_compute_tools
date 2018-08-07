@@ -20,7 +20,7 @@ except ImportError:
     from urllib.request import urlopen
 
 
-GITHUB_REPO = 'Rhodium Group/rhg_compute_tools'
+GITHUB_REPO = 'RhodiumGroup/rhg_compute_tools'
 TRAVIS_CONFIG_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '.travis.yml')
 
