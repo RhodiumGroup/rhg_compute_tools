@@ -49,8 +49,8 @@ extensions = [
     'sphinx.ext.intersphinx']
 
 extlinks = {
-    'issue': ('https://github.com/Rhodium Group/rhg_compute_tools/issues/%s', 'GH #'),
-    'pull': ('https://github.com/Rhodium Group/rhg_compute_tools/pull/%s', 'PR #')}
+    'issue': ('https://github.com/RhodiumGroup/rhg_compute_tools/issues/%s', 'GH #'),
+    'pull': ('https://github.com/RhodiumGroup/rhg_compute_tools/pull/%s', 'PR #')}
 
 napoleon_numpy_docstring = True
 

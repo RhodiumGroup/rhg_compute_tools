@@ -3,9 +3,7 @@
 
 language: python
 python:
-  - 3.5
   - 3.6
-  - 2.7
 
 env:
   matrix:
@@ -58,8 +56,8 @@ deploy:
     secure: PLEASE_REPLACE_ME
   on:
     branch: master
-    repo: Rhodium Group/rhg_compute_tools
-    python: 2.7
+    repo: RhodiumGroup/rhg_compute_tools
+    python: 3.6
 
 after_success:
   - coveralls

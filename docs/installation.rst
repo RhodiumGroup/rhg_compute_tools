@@ -32,13 +32,13 @@ You can either clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://github.com/Rhodium Group/rhg_compute_tools
+    $ git clone git://github.com/RhodiumGroup/rhg_compute_tools
 
 Or download the `tarball`_:
 
 .. code-block:: console
 
-    $ curl  -OL https://github.com/Rhodium Group/rhg_compute_tools/tarball/master
+    $ curl  -OL https://github.com/RhodiumGroup/rhg_compute_tools/tarball/master
 
 Once you have a copy of the source, you can install it with:
 
@@ -47,5 +47,5 @@ Once you have a copy of the source, you can install it with:
     $ python setup.py install
 
 
-.. _Github repo: https://github.com/Rhodium Group/rhg_compute_tools
-.. _tarball: https://github.com/Rhodium Group/rhg_compute_tools/tarball/master
+.. _Github repo: https://github.com/RhodiumGroup/rhg_compute_tools
+.. _tarball: https://github.com/RhodiumGroup/rhg_compute_tools/tarball/master

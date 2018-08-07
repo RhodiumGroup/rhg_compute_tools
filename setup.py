@@ -32,7 +32,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author="Michael Delgado",
     author_email='mdelgado@rhg.com',
-    url='https://github.com/Rhodium Group/rhg_compute_tools',
+    url='https://github.com/RhodiumGroup/rhg_compute_tools',
     packages=find_packages(include=['rhg_compute_tools']),
     include_package_data=True,
     install_requires=requirements,
