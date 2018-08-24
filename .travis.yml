@@ -4,9 +4,8 @@ after_success:
 deploy:
   on:
     tags: true
-  true:
     python: 3.6
-    repo: RhodiumGroup/rhg_compute_tools    
+    repo: RhodiumGroup/rhg_compute_tools   
     condition: $TEST_ENV = conda
 
   distributions: sdist bdist_wheel
