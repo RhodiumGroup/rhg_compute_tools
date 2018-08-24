@@ -5,7 +5,9 @@ deploy:
   true:
     branch: master
     python: 3.6
-    repo: RhodiumGroup/rhg_compute_tools
+    repo: RhodiumGroup/rhg_compute_tools    
+    condition: $TEST_ENV = conda
+
   distributions: sdist bdist_wheel
   password:
     secure: q+GB3j77w+79RYNWjFD7SAc3bQt+ViRXSVYkcESkfiyXTQij6t5SRkwmomK+qhig44w+7ukz5GELqCCgC0UtcRFDyFh2wppdIwokwiXUKoI/039cgkhnfXI/Jp2QLj5DQx3/5VvhGwTmYunMWN7Wws8slhKr4woLbyM8Bo5pOfHD1P5xM631Qyg9KAG6D4wMztnEKIkBRcGywC5asMs67qhqwgGA9pGuG3laRAcH+R5tpfD16udrjffJ7Pf33d7JFw/QpzPvRA/UKefpItPs7b5AB//KnahaLfRUHWAJ7HvP9i7LVB4WueX0I6EYhdXknEpuXg79DGP7f4zTUERRFIV1C2RMcCox+jYdq8h6ePuA2dMGNWWVKsarPIvm3M1PjcU9e/3xKc/Zs8gOE6966rhBWqGnrIuzQ3fDes3CR7kDsxyFYnXilenTfsdroHeNpHBFxvLBLdhcrT83FlNS/OusgfGO3p1EoDkRAHvS/OHF6iyp45fEJxq0EG3rQm9Knybpu1pAlzdJRBUonKIfKrKm3wiPQaQROdRAPtjP7nv9GGKt9pdWxPTs1Q2T5/bBP5IqX9UjaQFHxXUZ+7qE3F+AkzSl221f8U4dBDLxaTzt6fUBRWZzR0Hi/Ol0yFoUtJzdwV/OYm5MQfXGFomHUIcZwkE7uvYiAfOm0vUyuAY=
