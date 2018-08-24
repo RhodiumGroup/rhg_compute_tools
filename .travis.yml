@@ -2,8 +2,9 @@
 after_success:
 - coveralls
 deploy:
+  on:
+    tags: true
   true:
-    branch: master
     python: 3.6
     repo: RhodiumGroup/rhg_compute_tools    
     condition: $TEST_ENV = conda
