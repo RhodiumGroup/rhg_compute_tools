@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Main module."""
+"""Tools for interacting with kubernetes."""
 import dask_kubernetes as dk
 import dask.distributed as dd
 import yaml as yml
@@ -79,3 +79,5 @@ def get_worker(name=None,extra_pip_packages=None, extra_conda_packages=None,
     client
     
     return client, cluster
+
+
