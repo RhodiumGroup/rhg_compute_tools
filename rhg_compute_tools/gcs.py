@@ -77,23 +77,14 @@ def cp_to_gcs(src, dest, cred_path='/opt/gcsfuse_tokens/rhg-data.json'):
         
     st_time = dt.now()
     
-    # bucket = get_bucket(cred_path)
-    
     # construct cp command
     cmd = 'gsutil '
     if isdir(src):
-        # newblob = bucket.blob(dest)
         cmd += '-m cp -r '
-        # newblob.upload_from_filename(src)
     cmd += '{} {}'.format(src,dest)
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, 
                          stderr=subprocess.PIPE)
-    return p.communicate()
-
-    # else:
-    #     _cp_dir_to_gcs(bucket, src, dest)
-            
-    # return dt.now() - st_time
+    return p.communicate(), dt.now() - st_time
         
         
