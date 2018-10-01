@@ -8,6 +8,7 @@ from google.cloud import storage
 from google.oauth2 import service_account
 from glob import glob
 from datetime import datetime as dt
+import subprocess, shlex
 
 def get_bucket(cred_path):
     '''Return a bucket object from Rhg's GCS system.
@@ -76,15 +77,25 @@ def cp_to_gcs(src, dest, cred_path='/opt/gcsfuse_tokens/rhg-data.json'):
         
     st_time = dt.now()
     
-    bucket = get_bucket(cred_path)
+    # bucket = get_bucket(cred_path)
     
-    if isfile(src):
-        newblob = bucket.blob(dest)
-        newblob.upload_from_filename(src)
+    # construct cp command
+    cmd = 'gsutil '
+    if isdir(src):
+        # newblob = bucket.blob(dest)
+        cmd += '-m cp -r '
+        # newblob.upload_from_filename(src)
+    cmd += '{} {}'.format(src,dest)
+    cmd = shlex.split(cmd)
+    p = subprocess.Popen(cmd, 
+                             cwd=model_dir,
+                             stdout=subprocess.PIPE, 
+                             stderr=subprocess.PIPE)
+    return p.communicate()
 
-    else:
-        _cp_dir_to_gcs(bucket, src, dest)
+    # else:
+    #     _cp_dir_to_gcs(bucket, src, dest)
             
-    return dt.now() - st_time
+    # return dt.now() - st_time
         
         
