@@ -87,10 +87,8 @@ def cp_to_gcs(src, dest, cred_path='/opt/gcsfuse_tokens/rhg-data.json'):
         # newblob.upload_from_filename(src)
     cmd += '{} {}'.format(src,dest)
     cmd = shlex.split(cmd)
-    p = subprocess.Popen(cmd, 
-                             cwd=model_dir,
-                             stdout=subprocess.PIPE, 
-                             stderr=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, 
+                         stderr=subprocess.PIPE)
     return p.communicate()
 
     # else:
