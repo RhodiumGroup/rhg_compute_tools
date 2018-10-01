@@ -38,7 +38,7 @@ pip:
 Features
 --------
 
-* easily spin up a preconfigured cluster
+* easily spin up a preconfigured cluster with ``get_worker()``
 
 .. code-block::python
 
