@@ -3,7 +3,7 @@
 """Tools for interacting with GCS infrastructure."""
 
 import os
-from os.path import join, isfile, basename
+from os.path import join, isdir, basename
 from google.cloud import storage
 from google.oauth2 import service_account
 from glob import glob
