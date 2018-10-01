@@ -82,9 +82,7 @@ def cp_to_gcs(src, dest, cred_path='/opt/gcsfuse_tokens/rhg-data.json'):
     if isdir(src):
         cmd += '-m cp -r '
     cmd += '{} {}'.format(src,dest)
-    print(cmd)
     cmd = shlex.split(cmd)
-    print(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, 
                          stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
