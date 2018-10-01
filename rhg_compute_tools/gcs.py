@@ -3,7 +3,7 @@
 """Tools for interacting with GCS infrastructure."""
 
 import os
-from os.path import join, isdir, basename
+from os.path import join, isdir, basename, exists
 from google.cloud import storage
 from google.oauth2 import service_account
 from glob import glob
@@ -78,14 +78,25 @@ def cp_to_gcs(src, dest, cred_path='/opt/gcsfuse_tokens/rhg-data.json'):
     st_time = dt.now()
     
     # construct cp command
+    if dest[0] == '/':
+        dest_gs = dest.replace('/gcs/','gs://')
+        dest_gcs = dest
+    elif dest[0] == 'g':
+        dest_gs = dest
+        dest_gcs = dest.replace('gs://','/gcs/')
     cmd = 'gsutil '
     if isdir(src):
         cmd += '-m cp -r '
-    cmd += '{} {}'.format(src,dest)
+    cmd += '{} {}'.format(src,dest_gs)
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, 
                          stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
+    
+    # now make directory blob on gcs so that gcsfuse recognizes it
+    if not exists(dest_gcs):
+        os.mkdir(dest_gcs)
+        
     return stdout, stderr, dt.now() - st_time
         
         
