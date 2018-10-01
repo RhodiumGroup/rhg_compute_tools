@@ -6,7 +6,7 @@ import dask.distributed as dd
 import yaml as yml
 
 def get_worker(name=None,extra_pip_packages=None, extra_conda_packages=None,
-              memory_gb=11.5, nthreads=1, cpus=1.75, env_name='worker'):
+              memory_gb=11.5, nthreads=1, cpus=1.75, env_items=None):
     """Start dask.kubernetes cluster and dask.distributed client to wrap 
     that cluster.
     
@@ -28,9 +28,10 @@ def get_worker(name=None,extra_pip_packages=None, extra_conda_packages=None,
         should ever be set to something other than 1.
     cpus (optional) : float
         Number of virtual CPUs to assign per 'group of workers'
-    env_name (optional) : str
-        Name of conda environment to enter in worker. As of 9/22/18, this should
-        always be 'worker'
+    env_items (optional) : list of dict
+        A list of env variable 'name'-'value' pairs to append to the env variables
+        included in worker-template.yml. (e.g. [{'name': 'GCLOUD_DEFAULT_TOKEN_FILE', 
+        'value': '/opt/gcsfuse_tokens/rhg-data.json'}])
         
     Returns
     -------
@@ -52,6 +53,8 @@ def get_worker(name=None,extra_pip_packages=None, extra_conda_packages=None,
     if extra_conda_packages is not None:
         container['env'].append({'name':'EXTRA_CONDA_PACKAGES',
                                         'value':extra_conda_packages})
+    if env_items is not None:
+        container['env'] = container['env'] + env_items
         
     ## adjust memory request
     # first in args
