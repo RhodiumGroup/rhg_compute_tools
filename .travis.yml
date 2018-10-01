@@ -19,17 +19,29 @@ env:
   - TEST_ENV=conda
 install:
 - pip install --upgrade pip
-- 'if [[ "$TEST_ENV" == "conda" ]]; then if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]];
-  then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
-  -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-  -O miniconda.sh; fi; bash miniconda.sh -b -p $HOME/miniconda; export PATH="$HOME/miniconda/bin:$PATH";
-  hash -r; conda config --set always_yes yes --set changeps1 no; conda update -q conda;
-  conda info -a;
+- if [[ "$TEST_ENV" == "conda" ]]; then
+    if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]];
+      then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi;
+    bash miniconda.sh -b -p $HOME/miniconda;
+    export PATH="$HOME/miniconda/bin:$PATH";
+    hash -r;
+    conda config --set always_yes yes --set changeps1 no;
+    conda update -q conda;
+    conda info -a;
 
-  conda create -n test_env python=$TRAVIS_PYTHON_VERSION --yes; source activate test_env;
+    conda create -n test_env python=$TRAVIS_PYTHON_VERSION --yes;
+    source activate test_env;
 
-  python setup.py install; python -m pip install -r requirements_dev.txt; conda install
-  --yes --file requirements_conda.txt; else pip install -U tox-travis; fi'
+    python setup.py install;
+    python -m pip install -r requirements.txt;
+    python -m pip install -r requirements_dev.txt;
+    conda install --yes --file requirements_conda.txt;
+  else
+    pip install -U tox-travis;
+  fi
 language: python
 python:
 - 3.6
