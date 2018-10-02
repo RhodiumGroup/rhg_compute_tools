@@ -82,8 +82,6 @@ def cp_to_gcs(src, dest):
                          stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     
-    mid_time = dt.now()
-    
     # need to add directories if you were recursively copying a directory
     if isdir(src):
         # now make directory blobs on gcs so that gcsfuse recognizes it
@@ -93,6 +91,6 @@ def cp_to_gcs(src, dest):
             
     end_time = dt.now()
         
-    return stdout, stderr, mid_time - st_time, end_time - mid_time
+    return stdout, stderr, end_time - st_time
         
         
