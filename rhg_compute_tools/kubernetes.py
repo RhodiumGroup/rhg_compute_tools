@@ -6,7 +6,9 @@ import dask.distributed as dd
 import yaml as yml
 
 def get_worker(name=None,extra_pip_packages=None, extra_conda_packages=None,
-              memory_gb=11.5, nthreads=1, cpus=1.75, env_items=None):
+               memory_gb=11.5, nthreads=1, cpus=1.75,
+               cred_path = '/opt/gcsfuse_tokens/rhg-data.json',
+               env_items=None):
     """Start dask.kubernetes cluster and dask.distributed client to wrap 
     that cluster.
     
@@ -28,6 +30,8 @@ def get_worker(name=None,extra_pip_packages=None, extra_conda_packages=None,
         should ever be set to something other than 1.
     cpus (optional) : float
         Number of virtual CPUs to assign per 'group of workers'
+    cred_path (optional) : str or None
+        Path to Google Cloud credentials file to use. Defaults to rhg-data.json.
     env_items (optional) : list of dict
         A list of env variable 'name'-'value' pairs to append to the env variables
         included in worker-template.yml. (e.g. [{'name': 'GCLOUD_DEFAULT_TOKEN_FILE', 
@@ -53,6 +57,9 @@ def get_worker(name=None,extra_pip_packages=None, extra_conda_packages=None,
     if extra_conda_packages is not None:
         container['env'].append({'name':'EXTRA_CONDA_PACKAGES',
                                         'value':extra_conda_packages})
+    if cred_path is not None:
+        container['env'].append({'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
+                                 'value': cred_path})
     if env_items is not None:
         container['env'] = container['env'] + env_items
         
