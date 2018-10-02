@@ -31,43 +31,24 @@ def get_bucket(cred_path):
     return bucket
 
 
-def _cp_dir_to_gcs(bucket,src,dest):
-    '''Recursively copy a directory from local path to GCS'''
-    
-    files_loc = glob(join(src,'*'))
-    if src[-1] != '/': src += '/'
-
-    # upload directory blob
-    if bucket.get_blob(dest) is None:
-        newblob = bucket.blob(dest)
-        newblob.upload_from_string('')
-
-    # upload file blobs
-    for f_loc in files_loc:
-        fname = basename(f_loc)
-        this_dest = join(dest,fname)
-        if isfile(f_loc):
-            newblob = bucket.blob(this_dest)
-            newblob.upload_from_filename(f_loc)
-        # if directory, call this recursively
-        else:
-            _cp_dir_to_gcs(bucket,f_loc,this_dest)
-
-
-def cp_to_gcs(src, dest, cred_path='/opt/gcsfuse_tokens/rhg-data.json'):
+def cp_to_gcs(src, dest):
     '''Copy a file or recursively copy a directory from local
-    path to GCS.
+    path to GCS. Must have already authenticated to use. Notebook servers
+    are automatically authenticated, but workers need to pass the path
+    to the authentication json file to the GCLOUD_DEFAULT_TOKEN_FILE env var.
+    This is done automatically for rhg-data.json when using the get_worker 
+    wrapper.
     
     Parameters
     ----------
     src : str
         The local path to either a file (single copy) or a directory (recursive copy).
     dest : str
-        If copying a directory, this is the path of the directory blob on GCS.
-        If copying a file, this is the path of the file blob on GCS.
-        This path begins with e.g. 'impactlab-rhg/...'.
-    cred_path (optional) : str
-        Path to credentials file. Default is the default location on Rhg workers.
+        If copying a directory, this is the path of the directory blob on GCS. If it does not exist,
+        it will be created and populated with the contents of src. If it does exist, 
+        basename(src) will be placed inside dest. If copying a file, this is the path 
+        of the file blob on GCS. This path can begin with either '/gcs/rhg-data' or 
+        'gs://rhg-data'. There is no difference in behavior.
         
     Returns
     -------
@@ -84,6 +65,14 @@ def cp_to_gcs(src, dest, cred_path='/opt/gcsfuse_tokens/rhg-data.json'):
     elif dest[0] == 'g':
         dest_gs = dest
         dest_gcs = dest.replace('gs://','/gcs/')
+        
+    # if directory already existed cp would put src into dest_gcs
+    if exists(dest_gcs):
+        dest_base = join(dest_gcs,basename(src))
+    # else cp would have put the contents of src into the new directory
+    else:
+        dest_base = dest_gcs
+        
     cmd = 'gsutil '
     if isdir(src):
         cmd += '-m cp -r '
@@ -93,10 +82,17 @@ def cp_to_gcs(src, dest, cred_path='/opt/gcsfuse_tokens/rhg-data.json'):
                          stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     
-    # now make directory blob on gcs so that gcsfuse recognizes it
-    if not exists(dest_gcs):
-        os.mkdir(dest_gcs)
+    mid_time = dt.now()
+    
+    # need to add directories if you were recursively copying a directory
+    if isdir(src):
+        # now make directory blobs on gcs so that gcsfuse recognizes it
+        dirs_to_make = [x[0].replace(src,dest_base) for x in os.walk(src)]
+        for d in dirs_to_make:
+            os.makedirs(d,exist_ok=True)
+            
+    end_time = dt.now()
         
-    return stdout, stderr, dt.now() - st_time
+    return stdout, stderr, mid_time - st_time, end_time - mid_time
         
         
