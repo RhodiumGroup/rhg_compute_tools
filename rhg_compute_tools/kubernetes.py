@@ -4,6 +4,24 @@
 import dask_kubernetes as dk
 import dask.distributed as dd
 import yaml as yml
+import traceback
+
+
+def tb(ftr):
+    """Return a full stacktrace of an exception that occured on a worker
+    
+    Parameters
+    __________
+    ftr : :py:class:`dask.distributed.Future`
+    
+    Returns
+    _______
+    str : Traceback
+    """
+    return traceback.print_exception(
+    type(ftr.exception()),
+    ftr.exception(),
+    ftr.traceback())
 
 def get_worker(name=None,extra_pip_packages=None, extra_conda_packages=None,
                memory_gb=11.5, nthreads=1, cpus=1.75,
