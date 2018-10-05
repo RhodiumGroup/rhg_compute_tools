@@ -7,7 +7,7 @@ import yaml as yml
 import traceback
 
 
-def tb(ftr):
+def traceback(ftr):
     """Return a full stacktrace of an exception that occured on a worker
     
     Parameters
