@@ -38,5 +38,9 @@ pip:
 Features
 --------
 
-* TODO
+* easily spin up a preconfigured cluster with ``get_worker()``
 
+.. code-block::python
+
+    >>> import rhg_compute_tools as rhg
+    >>> cluster, client = rhg.get_worker()
