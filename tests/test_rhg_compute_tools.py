@@ -5,7 +5,7 @@
 
 import pytest
 
-from rhg_compute_tools import rhg_compute_tools
+from rhg_compute_tools import gcs, kubernetes
 
 @pytest.fixture
 def response():
