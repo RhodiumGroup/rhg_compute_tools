@@ -4,7 +4,7 @@
 import dask_kubernetes as dk
 import dask.distributed as dd
 import yaml as yml
-import traceback
+import traceback as tb
 
 
 def traceback(ftr):
@@ -18,7 +18,7 @@ def traceback(ftr):
     _______
     str : Traceback
     """
-    return traceback.print_exception(
+    return tb.print_exception(
     type(ftr.exception()),
     ftr.exception(),
     ftr.traceback())
