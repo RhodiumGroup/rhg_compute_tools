@@ -46,6 +46,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.extlinks',
     'sphinx.ext.napoleon',
+    'sphinx.ext.doctest',
     'sphinx.ext.intersphinx']
 
 extlinks = {
