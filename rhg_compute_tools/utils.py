@@ -23,18 +23,18 @@ def expand(func):
     
     .. code-block:: python
 
-        In [1]: @expand
-           ...: def my_func(a, b, exp=1):
-           ...:     return (a * b)**exp
-           ...:
+        >>> @expand
+        ... def my_func(a, b, exp=1):
+        ...     return (a * b)**exp
+        ...
 
-        In [2]: my_func((2, 3))
+        >>> my_func(((2, 3), {}))
         6
         
-        In [3]: my_func((2, 3, 2))
+        >>> my_func(((2, 3, 2), {}))
         36
         
-        In [4]: my_func(tuple([]), {'b': 4, 'c': 2, 'a': 1})
+        >>> my_func((tuple([]), {'b': 4, 'exp': 2, 'a': 1}))
         16
         
     This function can be used in combination with the ``collapse`` helper function,
@@ -42,16 +42,16 @@ def expand(func):
 
     .. code-block:: python
         
-        In [5]: my_func(collapse(2, 3, exp=2))
+        >>> my_func(collapse(2, 3, exp=2))
         36
 
     These can then be paired to enable many parameterized function calls:
 
     .. code-block:: python
 
-        In [6]: func_calls = [collapse(a, a+1, exp=a) for a in range(5)]
+        >>> func_calls = [collapse(a, a+1, exp=a) for a in range(5)]
 
-        In [7]: map(my_func, func_calls)
+        >>> list(map(my_func, func_calls))
         [1, 2, 36, 1728, 160000]
 
     '''
@@ -111,32 +111,31 @@ def collapse_product(*args, **kwargs):
     
     .. code-block:: python
 
-        In [1]: @expand
-           ...: def my_func(a, b, exp=1):
-           ...:     return (a * b)**exp
-           ...:
+        >>> @expand
+        ... def my_func(a, b, exp=1):
+        ...     return (a * b)**exp
+        ...
     
-        In [3]: product_args = collapse_product(
-           ...:     [0, 1, 2],
-           ...:     [0.5, 2],
-           ...:     exp=[0, 1])
+        >>> product_args = list(collapse_product(
+        ...     [0, 1, 2],
+        ...     [0.5, 2],
+        ...     exp=[0, 1]))
         
-        In [4]: list(product_args)  # doctest: NORMALIZE_WHITESPACE
-           [
-               ((0, 0.5), {'exp': 0}),
-               ((0, 0.5), {'exp': 1}),
-               ((0, 2), {'exp': 0}),
-               ((0, 2), {'exp': 1}),
-               ((1, 0.5), {'exp': 0}),
-               ((1, 0.5), {'exp': 1}),
-               ((1, 2), {'exp': 0}),
-               ((1, 2), {'exp': 1}),
-               ((2, 0.5), {'exp': 0}),
-               ((2, 0.5), {'exp': 1}),
-               ((2, 2), {'exp': 0}),
-               ((2, 2), {'exp': 1})]
-               
-        In [5]: list(map(my_func, product_args))
+        >>> product_args  # doctest: +NORMALIZE_WHITESPACE
+        [((0, 0.5), {'exp': 0}),
+         ((0, 0.5), {'exp': 1}),
+         ((0, 2), {'exp': 0}),
+         ((0, 2), {'exp': 1}),
+         ((1, 0.5), {'exp': 0}),
+         ((1, 0.5), {'exp': 1}),
+         ((1, 2), {'exp': 0}),
+         ((1, 2), {'exp': 1}),
+         ((2, 0.5), {'exp': 0}),
+         ((2, 0.5), {'exp': 1}),
+         ((2, 2), {'exp': 0}),
+         ((2, 2), {'exp': 1})]
+   
+        >>> list(map(my_func, product_args))
         [1.0, 0.0, 1, 0, 1.0, 0.5, 1, 2, 1.0, 1.0, 1, 4]
     '''
     num_args = len(args)
