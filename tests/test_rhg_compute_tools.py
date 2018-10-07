@@ -6,7 +6,7 @@
 import pytest
 import inspect
 
-from rhg_compute_tools import gcs, kubernetes
+from rhg_compute_tools import gcs, kubernetes, utils
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def test_content(response):
 
 
 def test_docstrings():
-    for mod in [gcs, kubernetes]:
+    for mod in [gcs, kubernetes, utils]:
         for cname, component in mod.__dict__.items():
             if cname.startswith('_'):
                 continue

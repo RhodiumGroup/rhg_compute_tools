@@ -1,5 +1,8 @@
-API
+rhg\_compute\_tools package
 ===========================
+
+Submodules
+----------
 
 rhg\_compute\_tools.gcs module
 ------------------------------
@@ -13,6 +16,14 @@ rhg\_compute\_tools.kubernetes module
 -------------------------------------
 
 .. automodule:: rhg_compute_tools.kubernetes
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+rhg\_compute\_tools.utils module
+--------------------------------
+
+.. automodule:: rhg_compute_tools.utils
     :members:
     :undoc-members:
     :show-inheritance:
