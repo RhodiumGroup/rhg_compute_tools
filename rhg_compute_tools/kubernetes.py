@@ -150,11 +150,6 @@ def get_cluster(
     if nthreads is not None:
         args[nthreads_ix] = str(nthreads)
 
-    # set memory-limit if provided
-    mem_ix = args.index('--memory-limit') + 1
-    if memory_gb is not None:
-        args[mem_ix] = '{:04.2f}GB'.format(float(memory_gb) * scaling_factor)
-
     # then in resources
     resources = container['resources']
     limits = resources['limits']
@@ -174,11 +169,16 @@ def get_cluster(
 
     format_request = lambda x: '{:04.2f}'.format(np.floor(x*100)/100)
 
+    # set memory-limit if provided
+    mem_ix = args.index('--memory-limit') + 1
+    args[mem_ix] = (
+        format_request(float(memory_gb) * scaling_factor) + 'GB')
+
     limits['memory'] = (
-        format_request(float(memory_gb) * scaling_factor) + 'G')
+        format_request(float(memory_gb) * scaling_factor) + 'GB')
 
     requests['memory'] = (
-        format_request(float(memory_gb) * scaling_factor) + 'G')
+        format_request(float(memory_gb) * scaling_factor) + 'GB')
 
     limits['cpu'] = format_request(float(cpus) * scaling_factor)
     requests['cpu'] = format_request(float(cpus) * scaling_factor)
