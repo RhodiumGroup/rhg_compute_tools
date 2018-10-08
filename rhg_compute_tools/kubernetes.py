@@ -5,6 +5,8 @@ import dask_kubernetes as dk
 import dask.distributed as dd
 import yaml as yml
 import traceback as tb
+import os
+import numpy as np
 
 
 def traceback(ftr):
@@ -48,18 +50,19 @@ def get_cluster(
         cpus=None,
         cred_path=None,
         env_items=None,
-        scaling_factor=1):
+        scaling_factor=1,
+        template_path='~/worker-template.yml'):
     """
     Start dask.kubernetes cluster and dask.distributed client
 
     All arguments are optional. If not provided, arguments will default to
-    values provided in ``~/worker-template.yml``.
+    values provided in ``template_path``.
 
     Parameters
     ----------
     name : str, optional
         Name of worker image to use. If None, default to worker specified in
-        ``/home/jovyan/worker-template.yml``.
+        ``template_path``.
     extra_pip_packages : str, optional
         Extra pip packages to install on worker. Syntax to install is
         ``pip install extra_pip_packages``
@@ -77,7 +80,7 @@ def get_cluster(
         Path to Google Cloud credentials file to use.
     env_items : list of dict, optional
         A list of env variable 'name'-'value' pairs to append to the env
-        variables included in ``~/worker-template.yml``, e.g.
+        variables included in ``template_path``, e.g.
 
         .. code-block:: python
 
@@ -94,6 +97,8 @@ def get_cluster(
 
         Recommended scaling factors given our default ``~/worker-template.yml``
         specs are [0.5, 1, 2, 4].
+    template_path : str, optional
+        Path to worker template file. Default ``~/worker-template.yml``.
 
     Returns
     -------
@@ -108,7 +113,9 @@ def get_cluster(
     :py:func:`get_big_cluster`, :py:func:`get_giant_cluster`
     """
 
-    with open('/home/jovyan/worker-template.yml', 'r') as f:
+    template_path = os.path.expanduser(template_path)
+
+    with open(template_path, 'r') as f:
         template = yml.load(f)
 
     container = template['spec']['containers'][0]
@@ -146,20 +153,35 @@ def get_cluster(
     # set memory-limit if provided
     mem_ix = args.index('--memory-limit') + 1
     if memory_gb is not None:
-        args[mem_ix] = '{}GB'.format(memory_gb * scaling_factor)
+        args[mem_ix] = '{:04.2f}GB'.format(float(memory_gb) * scaling_factor)
 
     # then in resources
     resources = container['resources']
     limits = resources['limits']
     requests = resources['requests']
 
-    if memory_gb is not None:
-        limits['memory'] = '{}G'.format(memory_gb * scaling_factor)
-        requests['memory'] = '{}G'.format(memory_gb * scaling_factor)
+    msg = '{} limits and requests do not match'
 
-    if cpus is not None:
-        limits['cpu'] = str(cpus * scaling_factor)
-        requests['cpu'] = str(cpus * scaling_factor)
+    if memory_gb is None:
+        memory_gb = float(limits['memory'].strip('G'))
+        mem_request = float(requests['memory'].strip('G'))
+        assert memory_gb == mem_request, msg.format('memory')
+
+    if cpus is None:
+        cpus = float(limits['cpu'])
+        cpu_request = float(requests['cpu'])
+        assert cpus == cpu_request, msg.format('cpu')
+
+    format_request = lambda x: '{:04.2f}'.format(np.floor(x*100)/100)
+
+    limits['memory'] = (
+        format_request(float(memory_gb) * scaling_factor) + 'G')
+
+    requests['memory'] = (
+        format_request(float(memory_gb) * scaling_factor) + 'G')
+
+    limits['cpu'] = format_request(float(cpus) * scaling_factor)
+    requests['cpu'] = format_request(float(cpus) * scaling_factor)
 
     # start cluster and client and return
     cluster = dk.KubeCluster.from_dict(template)
@@ -172,7 +194,7 @@ def get_cluster(
 @append_docstring(get_cluster)
 def get_giant_cluster(*args, **kwargs):
     """
-    Start a worker with 4x the memory and CPU of the specified worker
+    Start a cluster with 4x the memory and CPU per worker relative to default
     """
 
     return get_cluster(*args, scaling_factor=4, **kwargs)
@@ -181,7 +203,7 @@ def get_giant_cluster(*args, **kwargs):
 @append_docstring(get_cluster)
 def get_big_cluster(*args, **kwargs):
     """
-    Start a worker with 2x the memory and CPU of the specified worker
+    Start a cluster with 2x the memory and CPU per worker relative to default
     """
 
     return get_cluster(*args, scaling_factor=2, **kwargs)
@@ -190,7 +212,7 @@ def get_big_cluster(*args, **kwargs):
 @append_docstring(get_cluster)
 def get_standard_cluster(*args, **kwargs):
     """
-    Start a worker with 1x the memory and CPU of the specified worker
+    Start a cluster with 1x the memory and CPU per worker relative to default
     """
 
     return get_cluster(*args, scaling_factor=1, **kwargs)
@@ -199,7 +221,7 @@ def get_standard_cluster(*args, **kwargs):
 @append_docstring(get_cluster)
 def get_micro_cluster(*args, **kwargs):
     """
-    Start a worker with 0.5x the memory and CPU of the specified worker
+    Start a cluster with a single CPU per worker
     """
 
-    return get_cluster(*args, scaling_factor=0.5, **kwargs)
+    return get_cluster(*args, scaling_factor=(4/7), **kwargs)
