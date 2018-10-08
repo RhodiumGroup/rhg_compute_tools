@@ -13,11 +13,6 @@ RHG Compute Tools
         :target: https://rhg-compute-tools.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/RhodiumGroup/rhg_compute_tools/shield.svg
-     :target: https://pyup.io/repos/github/RhodiumGroup/rhg_compute_tools/
-     :alt: Updates
-
-
 Tools for using compute.rhg.com and compute.impactlab.org
 
 
