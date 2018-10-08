@@ -37,25 +37,25 @@ def get_worker(
 
     Parameters
     ----------
-    name (optional) : str
+    name : str, optional
         Name of worker image to use. If None, default to worker specified in
         `/home/jovyan/worker-template.yml`.
-    extra_pip_packages (optional) : str
+    extra_pip_packages : str, optional
         Extra pip packages to install on worker. Syntax to install is
         "pip install `extra_pip_packages`"
-    extra_conda_packages (optional) :str
+    extra_conda_packages :str, optional
         Same as above except for conda
-    memory_gb (optional) : float
+    memory_gb : float, optional
         Memory to assign per 'group of workers', where a group consists of
         nthreads independent workers.
-    nthreads (optional) : int
+    nthreads : int, optional
         Number of independent threads per group of workers. Not sure if this
         should ever be set to something other than 1.
-    cpus (optional) : float
+    cpus : float, optional
         Number of virtual CPUs to assign per 'group of workers'
-    cred_path (optional) : str or None
+    cred_path : str or None, optional
         Path to Google Cloud credentials file to use.
-    env_items (optional) : list of dict
+    env_items : list of dict, optional
         A list of env variable 'name'-'value' pairs to append to the env variables
         included in worker-template.yml. (e.g. [{'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
         'value': '/opt/gcsfuse_tokens/rhg-data.json'}])
