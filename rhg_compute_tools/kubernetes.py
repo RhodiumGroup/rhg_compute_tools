@@ -146,7 +146,7 @@ def get_cluster(
     # set memory-limit if provided
     mem_ix = args.index('--memory-limit') + 1
     if memory_gb is not None:
-        args[mem_ix] = '{}GB'.format(memory_gb)
+        args[mem_ix] = '{}GB'.format(memory_gb * scaling_factor)
 
     # then in resources
     resources = container['resources']
@@ -154,12 +154,12 @@ def get_cluster(
     requests = resources['requests']
 
     if memory_gb is not None:
-        limits['memory'] = '{}G'.format(memory_gb)
-        requests['memory'] = '{}G'.format(memory_gb)
+        limits['memory'] = '{}G'.format(memory_gb * scaling_factor)
+        requests['memory'] = '{}G'.format(memory_gb * scaling_factor)
 
     if cpus is not None:
-        limits['cpu'] = str(cpus)
-        requests['cpu'] = str(cpus)
+        limits['cpu'] = str(cpus * scaling_factor)
+        requests['cpu'] = str(cpus * scaling_factor)
 
     # start cluster and client and return
     cluster = dk.KubeCluster.from_dict(template)
