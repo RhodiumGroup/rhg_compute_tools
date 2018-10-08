@@ -105,7 +105,7 @@ def get_cluster(
     See Also
     --------
     :py:func:`get_micro_cluster`, :py:func:`get_standard_cluster`,
-    :py:func:`get_big_cluster`, :py_func:`get_giant_cluster`
+    :py:func:`get_big_cluster`, :py:func:`get_giant_cluster`
     """
 
     with open('/home/jovyan/worker-template.yml', 'r') as f:
