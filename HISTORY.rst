@@ -2,8 +2,8 @@
 History
 =======
 
-v0.1.2 (current version)
-========================
+v0.1.2 (2018-10-09)
+===================
 
 * Add xarray from delayed methods in ``rhg_compute_tools.xarray`` (:issue:`12`)
 * ``rhg_compute_tools.gcs.cp_to_gcs`` now calls ``gsutil`` in a subprocess instead of ``google.storage`` operations. This dramatically improves performance when transferring large numbers of small files (:issue:`11`)
