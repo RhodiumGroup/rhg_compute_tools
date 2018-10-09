@@ -30,16 +30,6 @@ def monkeypatch_cluster(func):
     return inner
 
 
-@monkeypatch_cluster
-def test_create_worker():
-
-    cluster, client = kubernetes.get_cluster(
-        template_path='tests/resources/worker_template.yml')
-
-    mem = cluster['spec']['containers'][0]['args'][5]
-    assert mem == '11.5GB', mem
-
-
 @pytest.mark.parametrize("mem,cpu,scale", [(None, None, None)])
 @monkeypatch_cluster
 def test_create_worker(mem=None, cpu=None, scale=None):
