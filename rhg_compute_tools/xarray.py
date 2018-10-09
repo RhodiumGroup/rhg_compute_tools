@@ -29,7 +29,7 @@ def dataarrays_from_delayed(futures, client=None):
     Given a mapped xarray DataArray, pull the metadata into memory while
     leaving the data on the workers:
 
-    .. code-block::python
+    .. code-block:: python
 
         >>> import numpy as np
 
@@ -113,7 +113,7 @@ def dataarray_from_delayed(futures, dim=None, client=None):
     Given a mapped xarray DataArray, pull the metadata into memory while
     leaving the data on the workers:
 
-    .. code-block::python
+    .. code-block:: python
 
         >>> import numpy as np, pandas as pd
 
@@ -169,7 +169,7 @@ def datasets_from_delayed(futures, client=None):
     Given a mapped :py:class:`xarray.Dataset`, pull the metadata into memory
     while leaving the data on the workers:
 
-    .. code-block::python
+    .. code-block:: python
 
         >>> import numpy as np
 
@@ -292,7 +292,7 @@ def dataset_from_delayed(futures, dim=None, client=None):
     Given a mapped :py:class:`xarray.Dataset`, pull the metadata into memory
     while leaving the data on the workers:
 
-    .. code-block::python
+    .. code-block:: python
 
         >>> import numpy as np, pandas as pd
 
