@@ -1,0 +1,17 @@
+metadata: null
+spec:
+  containers:
+  - args: [dask-worker, --nthreads, '1', --no-bokeh, --memory-limit, 11.5GB, --death-timeout,
+      '60']
+    env:
+    - {name: GCSFUSE_TOKENS, value: '{"bucket": "TOKEN"}'}
+    image: rhodium/worker:v0.2.3
+    name: dask-worker
+    resources:
+      limits: {cpu: '1.75', memory: 11.5G}
+      requests: {cpu: '1.75', memory: 11.5G}
+    securityContext:
+      capabilities:
+        add: [SYS_ADMIN]
+      privileged: true
+  restartPolicy: Never
