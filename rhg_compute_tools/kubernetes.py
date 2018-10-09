@@ -26,7 +26,7 @@ def traceback(ftr):
         ftr.traceback())
 
 
-def append_docstring(func_with_docstring):
+def _append_docstring(func_with_docstring):
     def decorator(func):
         if func.__doc__ is None:
             func.__doc__ = ''
@@ -194,7 +194,7 @@ def get_cluster(
     return client, cluster
 
 
-@append_docstring(get_cluster)
+@_append_docstring(get_cluster)
 def get_giant_cluster(*args, **kwargs):
     """
     Start a cluster with 4x the memory and CPU per worker relative to default
@@ -203,7 +203,7 @@ def get_giant_cluster(*args, **kwargs):
     return get_cluster(*args, scaling_factor=4, **kwargs)
 
 
-@append_docstring(get_cluster)
+@_append_docstring(get_cluster)
 def get_big_cluster(*args, **kwargs):
     """
     Start a cluster with 2x the memory and CPU per worker relative to default
@@ -212,7 +212,7 @@ def get_big_cluster(*args, **kwargs):
     return get_cluster(*args, scaling_factor=2, **kwargs)
 
 
-@append_docstring(get_cluster)
+@_append_docstring(get_cluster)
 def get_standard_cluster(*args, **kwargs):
     """
     Start a cluster with 1x the memory and CPU per worker relative to default
@@ -221,7 +221,7 @@ def get_standard_cluster(*args, **kwargs):
     return get_cluster(*args, scaling_factor=1, **kwargs)
 
 
-@append_docstring(get_cluster)
+@_append_docstring(get_cluster)
 def get_micro_cluster(*args, **kwargs):
     """
     Start a cluster with a single CPU per worker
