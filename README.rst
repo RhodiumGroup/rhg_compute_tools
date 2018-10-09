@@ -33,9 +33,9 @@ pip:
 Features
 --------
 
-* easily spin up a preconfigured cluster with ``get_worker()``
+* easily spin up a preconfigured cluster with ``get_cluster()``, or flavors with ``get_micro_cluster()``, ``get_standard_cluster()``, ``get_big_cluster()``, or ``get_giant_cluster()``.
 
 .. code-block::python
 
     >>> import rhg_compute_tools as rhg
-    >>> cluster, client = rhg.get_worker()
+    >>> cluster, client = rhg.get_cluster()
