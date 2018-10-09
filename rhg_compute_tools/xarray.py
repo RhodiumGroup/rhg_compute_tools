@@ -159,7 +159,7 @@ def datasets_from_delayed(futures, client=None):
 
     Returns
     -------
-    arrays : list
+    datasets : list
         list of :py:class:`xarray.Dataset` objects with
         :py:class:`dask.array.Array` backends for each variable.
 
@@ -282,7 +282,7 @@ def dataset_from_delayed(futures, dim=None, client=None):
 
     Returns
     -------
-    array : object
+    dataset : object
         :py:class:`xarray.Dataset` concatenated along ``dim`` with
         :py:class:`dask.array.Array` backends for each variable.
 
