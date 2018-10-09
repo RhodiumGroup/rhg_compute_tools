@@ -293,4 +293,5 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/2.7', None),
     'xarray': ('http://xarray.pydata.org/en/stable/', None),
     'dask': ('http://docs.dask.org/en/latest/', None),
+    'google': ('https://googleapis.github.io/google-cloud-python/latest/', None),
 }
