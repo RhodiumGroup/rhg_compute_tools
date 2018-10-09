@@ -64,10 +64,12 @@ def get_cluster(
         Name of worker image to use. If None, default to worker specified in
         ``template_path``.
     extra_pip_packages : str, optional
-        Extra pip packages to install on worker. Syntax to install is
-        ``pip install extra_pip_packages``
+        Extra pip packages to install on worker. Packages are installed
+        using ``pip install extra_pip_packages``.
     extra_conda_packages :str, optional
-        Same as above except for conda
+        Extra conda packages to install on worker. Default channel is
+        ``conda-forge``. Packages are installed using
+        ``conda install -y -c conda-forge ${EXTRA_CONDA_PACKAGES}``.
     memory_gb : float, optional
         Memory to assign per 'group of workers', where a group consists of
         nthreads independent workers.
@@ -147,6 +149,7 @@ def get_cluster(
 
     # set nthreads if provided
     nthreads_ix = args.index('--nthreads') + 1
+
     if nthreads is not None:
         args[nthreads_ix] = str(nthreads)
 
@@ -225,3 +228,4 @@ def get_micro_cluster(*args, **kwargs):
     """
 
     return get_cluster(*args, scaling_factor=(4/7), **kwargs)
+

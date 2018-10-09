@@ -29,7 +29,7 @@ test_requirements = [
 
 setup(
     name='rhg_compute_tools',
-    version='0.1.0',
+    version='0.1.1',
     description="Tools for using compute.rhg.com and compute.impactlab.org",
     long_description=readme + '\n\n' + history,
     author="Michael Delgado",
