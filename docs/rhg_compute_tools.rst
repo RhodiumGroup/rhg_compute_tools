@@ -1,27 +1,32 @@
-API
-===========================
 
-rhg\_compute\_tools.gcs module
-------------------------------
+Google Cloud Storage Tools
+==========================
 
 .. automodule:: rhg_compute_tools.gcs
     :members:
     :undoc-members:
     :show-inheritance:
 
-rhg\_compute\_tools.kubernetes module
--------------------------------------
+Kubernetes Tools
+================
 
 .. automodule:: rhg_compute_tools.kubernetes
     :members:
     :undoc-members:
     :show-inheritance:
 
+Xarray Tools
+============
 
-Module contents
----------------
+.. automodule:: rhg_compute_tools.xarray
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
-.. automodule:: rhg_compute_tools
+Other Utilities
+===============
+
+.. automodule:: rhg_compute_tools.utils
     :members:
     :undoc-members:
     :show-inheritance:

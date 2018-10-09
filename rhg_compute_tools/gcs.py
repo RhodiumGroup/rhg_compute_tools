@@ -10,24 +10,26 @@ from glob import glob
 from datetime import datetime as dt
 import subprocess, shlex
 
+
 def get_bucket(cred_path):
     '''Return a bucket object from Rhg's GCS system.
-    
+
     Parameters
     ----------
     cred_path : str
-        Path to credentials file. Default is the default location on Rhg workers.
-        
+        Path to credentials file. Default is the default location on RHG
+        workers.
+
     Returns
     -------
-    bucket : :py:class:`google.cloud.storage.Bucket`
+    bucket : :py:class:`google.cloud.storage.bucket.Bucket`
     '''
 
     credentials = service_account.Credentials.from_service_account_file(
-            cred_path)
+        cred_path)
     sclient = storage.Client(credentials=credentials)
     bucket = sclient.get_bucket('rhg-data')
-    
+
     return bucket
 
 
@@ -38,24 +40,25 @@ def cp_to_gcs(src, dest):
     to the authentication json file to the GCLOUD_DEFAULT_TOKEN_FILE env var.
     This is done automatically for rhg-data.json when using the get_worker 
     wrapper.
-    
+
     Parameters
     ----------
     src : str
-        The local path to either a file (single copy) or a directory (recursive copy).
+        The local path to either a file (single copy) or a directory (recursive
+        copy).
     dest : str
         If copying a directory, this is the path of the directory blob on GCS. If it does not exist,
         it will be created and populated with the contents of src. If it does exist, 
         basename(src) will be placed inside dest. If copying a file, this is the path 
         of the file blob on GCS. This path can begin with either '/gcs/rhg-data' or 
         'gs://rhg-data'. There is no difference in behavior.
-        
+
     Returns
     -------
     :py:class:`datetime.timedelta`
         Time it took to copy file(s).
     '''
-        
+
     st_time = dt.now()
     
     # construct cp command
@@ -92,5 +95,3 @@ def cp_to_gcs(src, dest):
     end_time = dt.now()
         
     return stdout, stderr, end_time - st_time
-        
-        

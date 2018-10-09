@@ -13,11 +13,6 @@ RHG Compute Tools
         :target: https://rhg-compute-tools.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/RhodiumGroup/rhg_compute_tools/shield.svg
-     :target: https://pyup.io/repos/github/RhodiumGroup/rhg_compute_tools/
-     :alt: Updates
-
-
 Tools for using compute.rhg.com and compute.impactlab.org
 
 
@@ -38,9 +33,9 @@ pip:
 Features
 --------
 
-* easily spin up a preconfigured cluster with ``get_worker()``
+* easily spin up a preconfigured cluster with ``get_cluster()``, or flavors with ``get_micro_cluster()``, ``get_standard_cluster()``, ``get_big_cluster()``, or ``get_giant_cluster()``.
 
 .. code-block::python
 
     >>> import rhg_compute_tools as rhg
-    >>> cluster, client = rhg.get_worker()
+    >>> cluster, client = rhg.get_cluster()

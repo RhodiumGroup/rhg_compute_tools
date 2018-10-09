@@ -46,6 +46,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.extlinks',
     'sphinx.ext.napoleon',
+    'sphinx.ext.doctest',
     'sphinx.ext.intersphinx']
 
 extlinks = {
@@ -289,5 +290,9 @@ texinfo_documents = [
 
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/2.7', None)
+    'python': ('https://docs.python.org/2.7', None),
+    'xarray': ('http://xarray.pydata.org/en/stable/', None),
+    'dask': ('http://docs.dask.org/en/latest/', None),
+    'dask_kubernetes': ('https://kubernetes.dask.org/en/latest/', None),
+    'google': ('https://googleapis.github.io/google-cloud-python/latest/', None),
 }
