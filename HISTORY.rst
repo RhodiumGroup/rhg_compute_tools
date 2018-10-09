@@ -14,7 +14,6 @@ v0.1.2 (2018-10-09)
 * Additional cluster creation helpers (:issue:`3`)
 
 v0.1.1 (2018-10-08)
-
 ===================
 
 * New google compute helpers (see ``rhg_compute_tools.gcs.cp_to_gcs``, ``rhg_compute_tools.gcs.get_bucket``)
