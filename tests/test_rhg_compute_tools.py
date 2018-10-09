@@ -30,16 +30,6 @@ def monkeypatch_cluster(func):
     return inner
 
 
-@monkeypatch_cluster
-def test_create_worker():
-
-    cluster, client = kubernetes.get_cluster(
-        template_path='tests/resources/worker_template.yml')
-
-    mem = cluster['spec']['containers'][0]['args'][5]
-    assert mem == '11.5GB', mem
-
-
 @pytest.mark.parametrize("mem,cpu,scale", [(None, None, None)])
 @monkeypatch_cluster
 def test_create_worker(mem=None, cpu=None, scale=None):
@@ -75,13 +65,14 @@ def test_size_worker(mem, cpu, scale):
     assert abs(mem - float(mem_arg.strip('GB'))) < 0.01, mem_arg
 
     res_lim = cluster['spec']['containers'][0]['resources']['limits']
-    assert abs(float(res_lim['memory'].strip('GB')) - mem) < 0.01, res_lim['memory']
+    mem_size = float(res_lim['memory'].strip('GB'))
+    assert abs(mem_size - mem) < 0.01, res_lim['memory']
     assert abs(float(res_lim['cpu']) - cpu) < 0.01, res_lim['cpu']
 
     res_req = cluster['spec']['containers'][0]['resources']['requests']
-    assert abs(float(res_req['memory'].strip('GB')) - mem) < 0.01, res_req['memory']
+    mem_size = float(res_req['memory'].strip('GB'))
+    assert abs(mem_size - mem) < 0.01, res_req['memory']
     assert abs(float(res_req['cpu']) - cpu) < 0.01, res_req['cpu']
-
 
 
 scale_test_params = [
@@ -93,7 +84,7 @@ scale_test_params = [
 
 @pytest.mark.parametrize("mem,cpu,scale", scale_test_params)
 @monkeypatch_cluster
-def test_scale_worker(mem, cpu,scale):
+def test_scale_worker(mem, cpu, scale):
 
     cluster, client = kubernetes.get_cluster(
         template_path='tests/resources/worker_template.yml',

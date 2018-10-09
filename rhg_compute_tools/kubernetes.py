@@ -170,7 +170,7 @@ def get_cluster(
         cpu_request = float(requests['cpu'])
         assert cpus == cpu_request, msg.format('cpu')
 
-    format_request = lambda x: '{:04.2f}'.format(np.floor(x*100)/100)
+    format_request = lambda x: '{:04.2f}'.format(np.floor(x * 100) / 100)
 
     # set memory-limit if provided
     mem_ix = args.index('--memory-limit') + 1
@@ -227,5 +227,4 @@ def get_micro_cluster(*args, **kwargs):
     Start a cluster with a single CPU per worker
     """
 
-    return get_cluster(*args, scaling_factor=(4/7), **kwargs)
-
+    return get_cluster(*args, scaling_factor=(4 / 7), **kwargs)
