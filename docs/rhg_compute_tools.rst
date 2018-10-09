@@ -28,6 +28,14 @@ rhg\_compute\_tools.utils module
     :undoc-members:
     :show-inheritance:
 
+rhg\_compute\_tools.xarray module
+---------------------------------
+
+.. automodule:: rhg_compute_tools.xarray
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

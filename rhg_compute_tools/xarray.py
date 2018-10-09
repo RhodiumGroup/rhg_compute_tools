@@ -211,13 +211,14 @@ def datasets_from_delayed(futures, client=None):
         client.map(lambda x: list(x.data_vars.keys()), futures))
 
     delayed_arrays = [
-        {k: (
-                client.submit(lambda x: x[k].data, futures[i]))
+        {
+            k: (client.submit(lambda x: x[k].data, futures[i]))
             for k in data_var_keys[i]}
         for i in range(len(futures))]
 
     dask_array_metadata = [
-        {k: (
+        {
+            k: (
                 client.submit(
                     lambda x: (x[k].data.shape, x[k].data.dtype),
                     futures[i])
@@ -226,14 +227,16 @@ def datasets_from_delayed(futures, client=None):
         for i in range(len(futures))]
 
     dask_data_arrays = [
-        {k: (
+        {
+            k: (
                 dask.array.from_delayed(
                     delayed_arrays[i][k], *dask_array_metadata[i][k]))
             for k in data_var_keys[i]}
         for i in range(len(futures))]
 
     array_metadata = [
-            {k: client.submit(
+        {
+            k: client.submit(
                 lambda x: {
                     'dims': x[k].dims,
                     'coords': x[k].coords,
@@ -243,7 +246,8 @@ def datasets_from_delayed(futures, client=None):
         for i in range(len(futures))]
 
     data_arrays = [
-        {k: (
+        {
+            k: (
                 xr.DataArray(dask_data_arrays[i][k], **array_metadata[i][k]))
             for k in data_var_keys[i]}
         for i in range(len(futures))]
