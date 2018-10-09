@@ -20,7 +20,7 @@ def get_bucket(cred_path):
 
     Returns
     -------
-    bucket : :py:class:`google.cloud.storage.Bucket`
+    bucket : :py:class:`google.cloud.storage.bucket.Bucket`
     '''
 
     credentials = service_account.Credentials.from_service_account_file(
