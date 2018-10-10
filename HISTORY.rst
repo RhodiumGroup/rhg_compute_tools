@@ -4,10 +4,10 @@ History
 
 .. current developments
 
-vv0.1.4
-====================
+v0.1.5
+======
 
-
+* need to figure out how to use this rever thing
 
 v0.1.4
 ======
