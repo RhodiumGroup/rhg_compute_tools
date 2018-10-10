@@ -2,8 +2,12 @@
 History
 =======
 
-v0.1.3 (current version)
+.. current developments
+
+v$VERSION
 ========================
+
+* Bug fix in ``rhg_compute_tools.kubernetes.get_worker``
 
 
 v0.1.2 (2018-10-09)
