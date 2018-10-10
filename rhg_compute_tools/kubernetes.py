@@ -178,10 +178,10 @@ def get_cluster(
         format_request(float(memory_gb) * scaling_factor) + 'GB')
 
     limits['memory'] = (
-        format_request(float(memory_gb) * scaling_factor) + 'GB')
+        format_request(float(memory_gb) * scaling_factor) + 'G')
 
     requests['memory'] = (
-        format_request(float(memory_gb) * scaling_factor) + 'GB')
+        format_request(float(memory_gb) * scaling_factor) + 'G')
 
     limits['cpu'] = format_request(float(cpus) * scaling_factor)
     requests['cpu'] = format_request(float(cpus) * scaling_factor)
