@@ -4,8 +4,14 @@ History
 
 .. current developments
 
+v0.1.4
+======
+
+* Bug fix again in ``rhg_compute_tools.kubernetes.get_worker``
+
+
 v0.1.3
-========================
+======
 
 * Bug fix in ``rhg_compute_tools.kubernetes.get_worker``
 
