@@ -4,6 +4,11 @@ History
 
 .. current developments
 
+v0.1.3
+====================
+
+
+
 v$VERSION
 ========================
 
