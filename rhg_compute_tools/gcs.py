@@ -33,7 +33,7 @@ def get_bucket(cred_path):
     return bucket
 
 
-def cp_to_gcs(src, dest):
+def cp_to_gcs(src, dest, cp_flag_str=''):
     '''Copy a file or recursively copy a directory from local
     path to GCS. Must have already authenticated to use. Notebook servers
     are automatically authenticated, but workers need to pass the path
@@ -53,6 +53,10 @@ def cp_to_gcs(src, dest):
         dest. If copying a file, this is the path of the file blob on GCS. This
         path can begin with either '/gcs/rhg-data' or 'gs://rhg-data'.
         There is no difference in behavior.
+    cp_flag_str : str, optional
+        String of flags to add to the gsutil cp command. e.g. `flag_str = '-P'` will
+        run the following command: `gsutil cp -P` on a single file or
+        `gsutil -m cp -Pr` on a directory
 
     Returns
     -------
@@ -80,7 +84,10 @@ def cp_to_gcs(src, dest):
     cmd = 'gsutil '
     if isdir(src):
         cmd += '-m cp -r '
-    cmd += '{} {}'.format(src, dest_gs)
+    else:
+        cmd += 'cp '
+    cmd += '{} {} {}'.format(cp_flag_str, src, dest_gs)
+    print(cmd)
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
