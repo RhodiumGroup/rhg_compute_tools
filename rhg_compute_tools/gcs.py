@@ -87,7 +87,6 @@ def cp_to_gcs(src, dest, cp_flag_str=''):
     else:
         cmd += 'cp '
     cmd += '{} {} {}'.format(cp_flag_str, src, dest_gs)
-    print(cmd)
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
