@@ -47,7 +47,7 @@ class MyAdaptive(Adaptive):
                         total_occupancy, total_cores)
 
 
-            tasks_processing = sum((len(w.processing) for t in cluster.scheduler.workers.values()))
+            tasks_processing = sum((len(w.processing) for w in self.scheduler.workers.values()))
             num_workers = len(self.scheduler.workers)
 
             if tasks_processing > num_workers:
