@@ -56,6 +56,10 @@ def cp_to_gcs(src, dest):
 
     Returns
     -------
+    str
+        stdout from gsutil call
+    str
+        stderr from gsutil call
     :py:class:`datetime.timedelta`
         Time it took to copy file(s).
     '''
@@ -63,12 +67,8 @@ def cp_to_gcs(src, dest):
     st_time = dt.now()
 
     # construct cp command
-    if dest[0] == '/':
-        dest_gs = dest.replace('/gcs/', 'gs://')
-        dest_gcs = dest
-    elif dest[0] == 'g':
-        dest_gs = dest
-        dest_gcs = dest.replace('gs://', '/gcs/')
+    dest_gs = dest.replace('/gcs/', 'gs://')
+    dest_gcs = dest.replace('gs://', '/gcs/')
 
     # if directory already existed cp would put src into dest_gcs
     if exists(dest_gcs):
@@ -92,6 +92,63 @@ def cp_to_gcs(src, dest):
         dirs_to_make = [x[0].replace(src, dest_base) for x in os.walk(src)]
         for d in dirs_to_make:
             os.makedirs(d, exist_ok=True)
+
+    end_time = dt.now()
+
+    return stdout, stderr, end_time - st_time
+
+
+def sync_to_gcs(src, dest, sync_flags=['r','d']):
+    '''Sync a directory from local to GCS. Uses `gsutil rsync`.
+    Must have already authenticated to use. Notebook servers
+    are automatically authenticated, but workers need to pass the path
+    to the authentication json file to the GCLOUD_DEFAULT_TOKEN_FILE env var.
+    This is done automatically for rhg-data.json when using the get_worker
+    wrapper.
+
+    Parameters
+    ----------
+    src : str
+        The local path to a directory.
+    dest : str
+        The path of the directory blob on GCS to which you would like to sync.
+        This path can begin with either '/gcs/rhg-data' or 'gs://rhg-data'.
+        There is no difference in behavior.
+    sync_flags : list of str, optional
+        Flags to pass to `gsutil rsync`. Default is `-d` (delete files on dst 
+        not on src), and `-r` (recursive). See gsutil website for info on more flags
+
+    Returns
+    -------
+    str
+        stdout from gsutil call
+    str
+        stderr from gsutil call
+    :py:class:`datetime.timedelta`
+        Time it took to copy file(s).
+    '''
+
+    st_time = dt.now()
+
+    # remove trailing /'s
+    src = src.rstrip('/')
+    dest = dest.rstrip('/')
+    
+    # make sure we're using URL
+    dest_gs = dest.replace('/gcs/', 'gs://')
+    dest_gcs = dest.replace('gs://', '/gcs/')
+
+    cmd = 'gsutil -m rsync ' + ' '.join(['-'+f for f in sync_flags]) + ' {} {}'.format(src, dest_gs)
+    cmd = shlex.split(cmd)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+
+    # need to add directories if you were recursively copying a directory
+    # now make directory blobs on gcs so that gcsfuse recognizes it
+    dirs_to_make = [x[0].replace(src, dest_gcs) for x in os.walk(src)]
+    for d in dirs_to_make:
+        os.makedirs(d, exist_ok=True)
 
     end_time = dt.now()
 
