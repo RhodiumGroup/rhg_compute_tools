@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import dask
+import dask.distributed
+
 from distributed.deploy.adaptive import Adaptive
 from distributed.deploy.cluster import Cluster
 from distributed.deploy.local import LocalCluster
@@ -1005,6 +1008,7 @@ def get_cluster(
         cred_path=None,
         env_items=None,
         scaling_factor=1,
+        dask_config_dict={},
         template_path='~/worker-template.yml'):
     """
     Start dask.kubernetes cluster and dask.distributed client
@@ -1047,6 +1051,10 @@ def get_cluster(
         or ``InsufficientCPU`` error on the google cloud Kubernetes console.
         Recommended scaling factors given our default ``~/worker-template.yml``
         specs are [0.5, 1, 2, 4].
+    dask_config_dict: dict, optional
+        Dask config parameters to modify from their defaults. A '.' is used
+        to access progressive levels of the yaml structure. For instance, the
+        dict could look like {'distributed.worker.profile.interval':'100ms'}
     template_path : str, optional
         Path to worker template file. Default ``~/worker-template.yml``.
     Returns
@@ -1061,6 +1069,10 @@ def get_cluster(
     :py:func:`get_big_cluster`, :py:func:`get_giant_cluster`
     """
 
+    ## update dask settings
+    dask.config.set(dask_config_dict)
+    
+    
     template_path = os.path.expanduser(template_path)
 
     with open(template_path, 'r') as f:
