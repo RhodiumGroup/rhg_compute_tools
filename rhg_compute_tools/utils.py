@@ -59,8 +59,8 @@ def expand(func):
     '''
 
     @functools.wraps(func)
-    def inner(ak):
-        return func(*ak[0], **ak[1])
+    def inner(ak, *args, **kwargs):
+        return func(*ak[0], *args, **ak[1], **kwargs)
     return inner
 
 
