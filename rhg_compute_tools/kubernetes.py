@@ -36,15 +36,6 @@ logger.setLevel(logging.DEBUG)
 
 class MyAdaptive(Adaptive):
     def needs_cpu(self):
-        """
-        Check if the cluster is CPU constrained (too many tasks per core)
-
-        Notes
-        -----
-        Returns ``True`` if the occupancy per core is some factor larger
-        than ``startup_cost`` and the number of tasks exceeds the number of
-        workers
-        """
         total_occupancy = self.scheduler.total_occupancy
         total_cores = sum([ws.ncores for ws in self.scheduler.workers.values()])
 
@@ -72,12 +63,6 @@ class MyAdaptive(Adaptive):
 
 class MyCluster(Cluster):
     def adapt(self, **kwargs):
-        """ Turn on adaptivity
-        For keyword arguments see dask.distributed.Adaptive
-        Examples
-        --------
-        >>> cluster.adapt(minimum=0, maximum=10, interval='500ms')
-        """
         with ignoring(AttributeError):
             self._adaptive.stop()
         if not hasattr(self, '_adaptive_options'):
@@ -214,12 +199,6 @@ def _cleanup_pods(namespace, labels):
                 raise
 
 def _namespace_default():
-    """
-    Get current namespace if running in a k8s cluster
-    If not in a k8s cluster with service accounts enabled, default to
-    'default'
-    Taken from https://github.com/jupyterhub/kubespawner/blob/master/kubespawner/spawner.py#L125
-    """
     ns_path = '/var/run/secrets/kubernetes.io/serviceaccount/namespace'
     if os.path.exists(ns_path):
         with open(ns_path) as f:
@@ -246,16 +225,6 @@ import numpy as np
 
 
 def traceback(ftr):
-    """Return a full stacktrace of an exception that occured on a worker
-
-    Parameters
-    __________
-    ftr : :py:class:`dask.distributed.Future`
-
-    Returns
-    _______
-    str : Traceback
-    """
     return tb.print_exception(
         type(ftr.exception()),
         ftr.exception(),
