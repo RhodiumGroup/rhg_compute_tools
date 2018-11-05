@@ -1,6 +1,8 @@
 import functools
 import itertools
-
+import json
+import numpy as np
+import os
 
 def expand(func):
     '''
@@ -215,13 +217,13 @@ def checkpoint(jobs, futures, job_name, log_dir='.', extra_pending=None, extra_e
 
         other_jobs[k].append(v)
 
-    with open(join(log_dir, '{}.pending'.format(job_name)), 'w+') as f:
+    with open(os.path.join(log_dir, '{}.pending'.format(job_name)), 'w+') as f:
         f.write(json.dumps(pending_jobs, cls=NumpyEncoder))
 
-    with open(join(log_dir, '{}.err'.format(job_name)), 'w+') as f:
+    with open(os.path.join(log_dir, '{}.err'.format(job_name)), 'w+') as f:
         f.write(json.dumps(errored_jobs, cls=NumpyEncoder))
 
-    with open(join(log_dir, '{}.other'.format(job_name)), 'w+') as f:
+    with open(os.path.join(log_dir, '{}.other'.format(job_name)), 'w+') as f:
         f.write(json.dumps(other_jobs, cls=NumpyEncoder))
 
 
@@ -230,21 +232,21 @@ def recover(job_name, log_dir='.'):
     recover pending, errored, other jobs from a checkpoint
     '''
 
-    with open(join(log_dir, '{}.pending'.format(job_name)), 'r') as f:
+    with open(os.path.join(log_dir, '{}.pending'.format(job_name)), 'r') as f:
         content = f.read()
         if len(content) == 0:
             pending = {}
         else:
             pending = json.loads(content)
 
-    with open(join(log_dir, '{}.err'.format(job_name)), 'r') as f:
+    with open(os.path.join(log_dir, '{}.err'.format(job_name)), 'r') as f:
         content = f.read()
         if len(content) == 0:
             errored = {}
         else:
             errored = json.loads(content)
 
-    with open(join(log_dir, '{}.other'.format(job_name)), 'r') as f:
+    with open(os.path.join(log_dir, '{}.other'.format(job_name)), 'r') as f:
         content = f.read()
         if len(content) == 0:
             other = {}
