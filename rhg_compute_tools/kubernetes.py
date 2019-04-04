@@ -261,6 +261,7 @@ def get_cluster(
     Start dask.kubernetes cluster and dask.distributed client
     All arguments are optional. If not provided, arguments will default to
     values provided in ``template_path``.
+
     Parameters
     ----------
     name : str, optional
@@ -304,16 +305,21 @@ def get_cluster(
         dict could look like {'distributed.worker.profile.interval':'100ms'}
     template_path : str, optional
         Path to worker template file. Default ``~/worker-template.yml``.
+
     Returns
     -------
     client : object
         :py:class:`dask.distributed.Client` connected to cluster
     cluster : object
         Pre-configured :py:class:`dask_kubernetes.KubeCluster`
+
     See Also
     --------
-    :py:func:`get_micro_cluster`, :py:func:`get_standard_cluster`,
-    :py:func:`get_big_cluster`, :py:func:`get_giant_cluster`
+    :py:func:`get_micro_cluster`
+    :py:func:`get_standard_cluster`
+    :py:func:`get_big_cluster`
+    :py:func:`get_giant_cluster`
+
     """
 
     ## update dask settings
