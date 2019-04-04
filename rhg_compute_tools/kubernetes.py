@@ -336,7 +336,7 @@ def get_cluster(
     template_path = os.path.expanduser(template_path)
 
     with open(template_path, 'r') as f:
-        template = yml.load(f)
+        template = yml.load(f, Loader=yml.SafeLoader)
 
     container = template['spec']['containers'][0]
 
