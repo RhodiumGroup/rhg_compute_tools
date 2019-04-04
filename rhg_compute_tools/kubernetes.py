@@ -211,8 +211,6 @@ valid_characters = string.ascii_letters + string.digits + '_-.'
 
 def escape(s):
     return ''.join(c for c in s if c in valid_characters)
-            
-
 
 
 
@@ -259,8 +257,10 @@ def get_cluster(
         template_path='~/worker-template.yml'):
     """
     Start dask.kubernetes cluster and dask.distributed client
+
     All arguments are optional. If not provided, arguments will default to
     values provided in ``template_path``.
+
     Parameters
     ----------
     name : str, optional
@@ -286,10 +286,13 @@ def get_cluster(
     env_items : list of dict, optional
         A list of env variable 'name'-'value' pairs to append to the env
         variables included in ``template_path``, e.g.
+
         .. code-block:: python
+
             [{
                 'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
                 'value': '/opt/gcsfuse_tokens/rhg-data.json'}])
+
     scaling_factor: float, optional
         scale the worker memory & CPU size using a constant multiplier of the
         specified worker. No constraints in terms of performance or cluster
@@ -304,26 +307,36 @@ def get_cluster(
         dict could look like {'distributed.worker.profile.interval':'100ms'}
     template_path : str, optional
         Path to worker template file. Default ``~/worker-template.yml``.
+
     Returns
     -------
     client : object
         :py:class:`dask.distributed.Client` connected to cluster
     cluster : object
         Pre-configured :py:class:`dask_kubernetes.KubeCluster`
+
+
     See Also
     --------
-    :py:func:`get_micro_cluster`, :py:func:`get_standard_cluster`,
-    :py:func:`get_big_cluster`, :py:func:`get_giant_cluster`
+    :py:func:`get_micro_cluster` :
+        A cluster with one-CPU workers
+    :py:func:`get_standard_cluster` :
+        The default cluster specification
+    :py:func:`get_big_cluster` :
+        A cluster with workers twice the size of the default
+    :py:func:`get_giant_cluster` :
+        A cluster with workers four times the size of the default
+
     """
 
     ## update dask settings
     dask.config.set(dask_config_dict)
-    
-    
+
+
     template_path = os.path.expanduser(template_path)
 
     with open(template_path, 'r') as f:
-        template = yml.load(f)
+        template = yml.load(f, Loader=yml.SafeLoader)
 
     container = template['spec']['containers'][0]
 
