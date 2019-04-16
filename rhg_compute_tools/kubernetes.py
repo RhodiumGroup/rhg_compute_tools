@@ -250,6 +250,7 @@ def get_cluster(
         memory_gb=None,
         nthreads=None,
         cpus=None,
+        cred_name=None,
         cred_path=None,
         env_items=None,
         scaling_factor=1,
@@ -281,6 +282,9 @@ def get_cluster(
         should ever be set to something other than 1.
     cpus : float, optional
         Number of virtual CPUs to assign per 'group of workers'
+    cred_name : str, optional
+        Name of Google Cloud credentials file to use, equivalent to providing
+        ``cred_path='/opt/gcsfuse_tokens/{}.json'.format(cred_name)``
     cred_path : str, optional
         Path to Google Cloud credentials file to use.
     env_items : list of dict, optional
@@ -358,6 +362,11 @@ def get_cluster(
         container['env'].append({
             'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
             'value': cred_path})
+        
+    elif cred_name is not None:
+        container['env'].append({
+            'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
+            'value': '/opt/gcsfuse_tokens/{}.json'.format(cred_name)})
 
     if env_items is not None:
         container['env'] = container['env'] + env_items
