@@ -1,8 +1,8 @@
 
 def test_imports():
     import rhg_compute_tools.design
-    import rhg_compute_tools.design.colors
     import matplotlib.cm
+    import matplotlib.colors
 
     assert isinstance(
         matplotlib.cm.get_cmap('rhg_Blues'),
