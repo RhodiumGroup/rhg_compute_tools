@@ -29,19 +29,23 @@ _custom_continuous_cmaps = {
     'rhg_Purples': ["#D7BBE3", "#BE95CF", "#915FA4", "#633A76", "#6C0405"],
 }
 
-for cmap_name, cmap_colors in _custom_continuous_cmaps.items():
-    cmap = LinearSegmentedColormap.from_list(cmap_name, cmap_colors)
-    matplotlib.cm.register_cmap(cmap=cmap)
-    cmap_r = cmap.reversed()
-    matplotlib.cm.register_cmap(cmap=cmap_r)
-
 _custom_discrete_cmaps = {
-    'rhg_standard': ["#0078AD","#77B530","#E7B731","#E97625","#C32524","#915FA4"],
-    'rhg_light': ["#63AAD6","#A0D55F","#FBD568","#FEA569","#E66967","#BE95CF"],
+    'rhg_standard': [
+        "#0078AD", "#77B530", "#E7B731", "#E97625", "#C32524", "#915FA4"],
+    'rhg_light': [
+        "#63AAD6", "#A0D55F", "#FBD568", "#FEA569", "#E66967", "#BE95CF"],
 }
 
-for cmap_name, cmap_colors in _custom_discrete_cmaps.items():
-    cmap = ListedColormap(cmap_colors, name=cmap_name)
-    matplotlib.cm.register_cmap(cmap=cmap)
-    cmap_r = cmap.reversed()
-    matplotlib.cm.register_cmap(cmap=cmap_r)
+
+def _load_colors():
+    for cmap_name, cmap_colors in _custom_continuous_cmaps.items():
+        cmap = LinearSegmentedColormap.from_list(cmap_name, cmap_colors)
+        matplotlib.cm.register_cmap(cmap=cmap)
+        cmap_r = cmap.reversed()
+        matplotlib.cm.register_cmap(cmap=cmap_r)
+
+    for cmap_name, cmap_colors in _custom_discrete_cmaps.items():
+        cmap = ListedColormap(cmap_colors, name=cmap_name)
+        matplotlib.cm.register_cmap(cmap=cmap)
+        cmap_r = cmap.reversed()
+        matplotlib.cm.register_cmap(cmap=cmap_r)

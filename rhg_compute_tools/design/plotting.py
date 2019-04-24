@@ -2,12 +2,12 @@
 import matplotlib
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
-import pandas as pd
 
 try:
     _string_types = (str, unicode)
 except NameError:
     _string_types = (str, )
+
 
 def get_color_scheme(values, cmap=None, colors=None, levels=None, how=None):
     '''
@@ -80,10 +80,9 @@ def get_color_scheme(values, cmap=None, colors=None, levels=None, how=None):
 
     return cmap, norm
 
-import matplotlib
 
-
-def add_colorbar(ax, cmap='viridis', norm=Norm, orientation='vertical', **kwargs):
+def add_colorbar(
+        ax, cmap='viridis', norm=None, orientation='vertical', **kwargs):
     '''
     Add a colorbar to a plot, using a pre-defined cmap and norm
 
