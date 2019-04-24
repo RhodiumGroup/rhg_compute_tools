@@ -1,5 +1,5 @@
 
-import matplotlib
+import matplotlib.cm
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 
