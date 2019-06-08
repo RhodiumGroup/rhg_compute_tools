@@ -7,5 +7,5 @@
 #
 #     click==6.7
 
-google-cloud-storage==1.13.0
-dask-kubernetes==0.5.0
+google-cloud-storage==1.16.1
+dask-kubernetes==0.8.0
