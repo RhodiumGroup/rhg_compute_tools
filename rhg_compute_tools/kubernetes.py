@@ -2,6 +2,7 @@
 """Tools for interacting with kubernetes."""
 
 from dask_kubernetes import KubeCluster
+import dask
 import dask.distributed as dd
 import yaml as yml
 import traceback as tb
