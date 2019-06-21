@@ -13,8 +13,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'dask_kubernetes',
-    'google-cloud-storage',
-    'numpy'
+    'google-cloud-storage'
     # TODO: put package requirements here
 ]
 
@@ -38,6 +37,9 @@ setup(
     url='https://github.com/RhodiumGroup/rhg_compute_tools',
     packages=find_packages(include=['rhg_compute_tools']),
     include_package_data=True,
+    package_data={
+        'rhg_compute_tools': ['*.mplstyle'],
+    },
     install_requires=requirements,
     license="MIT license",
     zip_safe=False,
