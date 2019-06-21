@@ -42,7 +42,7 @@ def dataarrays_from_delayed(futures, client=None):
         >>> fut = client.map(build_arr, range(3))
         >>> arrs = dataarrays_from_delayed(fut)
         >>> arrs[-1]  # doctest: +ELLIPSIS
-        <xarray.DataArray 'from-value-...' (x: 2)>
+        <xarray.DataArray (x: 2)>
         dask.array<shape=(2,), dtype=int64, chunksize=(2,)>
         Coordinates:
           * x        (x) <U1 'a' 'b'
@@ -52,7 +52,7 @@ def dataarrays_from_delayed(futures, client=None):
     .. code-block:: python
 
         >>> xr.concat(arrs, dim='simulation') # doctest: +ELLIPSIS
-        <xarray.DataArray 'from-value-...' (simulation: 3, x: 2)>
+        <xarray.DataArray (simulation: 3, x: 2)>
         dask.array<shape=(3, 2), dtype=int64, chunksize=(1, 2)>
         Coordinates:
           * x        (x) <U1 'a' 'b'
@@ -130,7 +130,7 @@ def dataarray_from_delayed(futures, dim=None, client=None):
         ...
 
         >>> da  # doctest: +ELLIPSIS
-        <xarray.DataArray 'from-value-...' (simulation: 3, x: 2)>
+        <xarray.DataArray (simulation: 3, x: 2)>
         dask.array<shape=(3, 2), dtype=int64, chunksize=(1, 2)>
         Coordinates:
           * x           (x) <U1 'a' 'b'
