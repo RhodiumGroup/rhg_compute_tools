@@ -1,32 +1,53 @@
+rhg\_compute\_tools package
+===========================
 
-Google Cloud Storage Tools
-==========================
+Subpackages
+-----------
+
+.. toctree::
+
+    rhg_compute_tools.design
+
+Submodules
+----------
+
+rhg\_compute\_tools.gcs module
+------------------------------
 
 .. automodule:: rhg_compute_tools.gcs
     :members:
     :undoc-members:
     :show-inheritance:
 
-Kubernetes Tools
-================
+rhg\_compute\_tools.kubernetes module
+-------------------------------------
 
 .. automodule:: rhg_compute_tools.kubernetes
     :members:
     :undoc-members:
     :show-inheritance:
 
-Xarray Tools
-============
+rhg\_compute\_tools.utils module
+--------------------------------
+
+.. automodule:: rhg_compute_tools.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+rhg\_compute\_tools.xarray module
+---------------------------------
 
 .. automodule:: rhg_compute_tools.xarray
     :members:
     :undoc-members:
     :show-inheritance:
 
-Other Utilities
-===============
 
-.. automodule:: rhg_compute_tools.utils
+Module contents
+---------------
+
+.. automodule:: rhg_compute_tools
     :members:
     :undoc-members:
     :show-inheritance:
