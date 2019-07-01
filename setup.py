@@ -4,12 +4,13 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+import re
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 with open('HISTORY.rst') as history_file:
-    history = history_file.read()
+    history = re.sub(r'\(:issue:`[0-9]+`\)', '', history_file.read())
 
 requirements = [
     'dask_kubernetes',
@@ -32,6 +33,7 @@ setup(
     version='0.1.8',
     description="Tools for using compute.rhg.com and compute.impactlab.org",
     long_description=readme + '\n\n' + history,
+    long_description_content_type='text/x-rst',
     author="Michael Delgado",
     author_email='mdelgado@rhg.com',
     url='https://github.com/RhodiumGroup/rhg_compute_tools',
