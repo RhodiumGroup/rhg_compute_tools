@@ -29,7 +29,7 @@ ytick.minor.size: 0
 axes.spines.top : False
 axes.spines.right : False
 
-font.sans-serif : Fira Sans, sans-serif
+font.sans-serif : Fira Sans
 font.family : sans-serif
 
 figure.subplot.left: 0.08
