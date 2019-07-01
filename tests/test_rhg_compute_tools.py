@@ -4,14 +4,13 @@
 """Tests for `rhg_compute_tools` package."""
 
 import pytest
-import inspect
 
-from rhg_compute_tools import gcs, kubernetes, utils
+from rhg_compute_tools import kubernetes
 
 
 def monkeypatch_cluster(func):
     def inner(monkeypatch, mem, cpu, scale):
-        def mock_KubeCluster_from_dict(dict_argument):
+        def mock_KubeCluster_from_dict(dict_argument, **kwargs):
             return dict_argument
 
         def mock_dask_Client(cluster):
