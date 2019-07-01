@@ -31,6 +31,7 @@ def _append_docstring(func_with_docstring):
         return func
     return decorator
 
+
 def get_cluster(
         name=None,
         extra_pip_packages=None,
@@ -122,9 +123,8 @@ def get_cluster(
 
     """
 
-    ## update dask settings
+    # update dask settings
     dask.config.set(dask_config_dict)
-
 
     template_path = os.path.expanduser(template_path)
 

@@ -4,10 +4,8 @@
 """Tests for `rhg_compute_tools` package."""
 
 import pytest
-import inspect
-import warnings
 
-from rhg_compute_tools import gcs, kubernetes, utils
+from rhg_compute_tools import kubernetes
 
 
 def monkeypatch_cluster(func):

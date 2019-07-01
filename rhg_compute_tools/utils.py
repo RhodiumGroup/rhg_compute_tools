@@ -4,6 +4,7 @@ import json
 import numpy as np
 import os
 
+
 def expand(func):
     '''
     Decorator to expand an (args, kwargs) tuple in function calls
@@ -157,7 +158,7 @@ class NumpyEncoder(json.JSONEncoder):
     '''
     Helper class for json.dumps to coerce numpy objects to native python
     '''
-    
+
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
@@ -172,23 +173,30 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def checkpoint(jobs, futures, job_name, log_dir='.', extra_pending=None, extra_errors=None, extra_others=None):
+def checkpoint(
+        jobs,
+        futures,
+        job_name,
+        log_dir='.',
+        extra_pending=None,
+        extra_errors=None,
+        extra_others=None):
     '''
     checkpoint and save a job state to disk
     '''
-    
+
     err_msg = (
         "lengths do not match: jobs [{}] != futures [{}]"
         .format(len(jobs), len(futures)))
 
     assert len(jobs) == len(futures), err_msg
-    
+
     if extra_pending is None:
         extra_pending = []
-    
+
     if extra_errors is None:
         extra_errors = []
-        
+
     if extra_others is None:
         extra_others = {}
 
@@ -199,18 +207,18 @@ def checkpoint(jobs, futures, job_name, log_dir='.', extra_pending=None, extra_e
     errored_jobs = (
         [jobs[i] for i, f in enumerate(futures) if f.status == 'error']
         + extra_errors)
-    
+
     other_jobs = {}
-    
+
     for i, f in enumerate(futures):
         if f.status in ['pending', 'error', 'finished']:
             continue
 
         if f.status not in other_jobs:
             other_jobs[f.status] = []
-        
+
         other_jobs[f.status].append(jobs[i])
-        
+
     for k, v in extra_others.items():
         if k not in other_jobs:
             other_jobs[k] = []
@@ -252,5 +260,5 @@ def recover(job_name, log_dir='.'):
             other = {}
         else:
             other = json.loads(content)
-        
+
     return pending, errored, other

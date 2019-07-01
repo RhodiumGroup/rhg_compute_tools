@@ -2,8 +2,6 @@ import xarray as xr
 import dask.array
 import dask.distributed as dd
 
-import logging
-
 
 def dataarrays_from_delayed(futures, client=None):
     '''
