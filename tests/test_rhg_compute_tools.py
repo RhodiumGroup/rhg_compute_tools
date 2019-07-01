@@ -5,13 +5,14 @@
 
 import pytest
 import inspect
+import warnings
 
 from rhg_compute_tools import gcs, kubernetes, utils
 
 
 def monkeypatch_cluster(func):
     def inner(monkeypatch, mem, cpu, scale):
-        def mock_KubeCluster_from_dict(dict_argument):
+        def mock_KubeCluster_from_dict(dict_argument, **kwargs):
             return dict_argument
 
         def mock_dask_Client(cluster):

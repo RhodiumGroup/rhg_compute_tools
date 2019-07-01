@@ -43,7 +43,8 @@ def get_cluster(
         env_items=None,
         scaling_factor=1,
         dask_config_dict={},
-        template_path='~/worker-template.yml'):
+        template_path='~/worker-template.yml',
+        **kwargs):
     """
     Start dask.kubernetes cluster and dask.distributed client
 
@@ -150,7 +151,7 @@ def get_cluster(
         container['env'].append({
             'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
             'value': cred_path})
-        
+
     elif cred_name is not None:
         container['env'].append({
             'name': 'GCLOUD_DEFAULT_TOKEN_FILE',

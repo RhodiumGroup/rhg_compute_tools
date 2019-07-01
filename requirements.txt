@@ -1,11 +1,4 @@
-# add pip requirements that should be intalled to use this package here.
-# requirements should be in the format
-#
-#     package==version
-#
-# for example:
-#
-#     click==6.7
-
 google-cloud-storage==1.16.1
 dask-kubernetes==0.8.0
+matplotlib==3.0.3
+numpy>=1.14
