@@ -109,7 +109,8 @@ def add_colorbar(
         norm between the min and max of the first plotted object.
     orientation : str, optional
         default 'vertical'
-    **kwargs passed to colorbar constructor
+    **kwargs :
+        passed to colorbar constructor
     '''
 
     if norm is None:
