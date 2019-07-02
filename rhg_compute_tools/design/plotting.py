@@ -16,11 +16,21 @@ def get_color_scheme(values, cmap=None, colors=None, levels=None, how=None):
     Parameters
     ----------
     values : array-like
-        data from which to generate cmap and norm
+        data to be plotted, from which to generate cmap and norm.
+        This should be an array, DataArray, etc. that we can use
+        to find the min/max and/or quantiles of the data.
     cmap : str, optional
+        named matplotlib cmap (default inferred from data)
     colors : list-like, optional
+        list of colors to use in a discrete colormap, or with which
+        to create a custom color map
     levels : list-like, optional
+        boundaries of discrete colormap, provide 
     how : str, optional
+        Optional setting form ``{'linear', 'log', 'symlog', None}``.
+        Used to construct the returned ``norm`` object, which defines
+        the way the colors map to values. By default, we the method is
+        inferred from the ``values``.
 
     Returns
     -------
