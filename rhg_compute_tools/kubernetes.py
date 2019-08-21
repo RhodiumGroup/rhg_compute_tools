@@ -25,7 +25,7 @@ from distributed.utils import (sync, ignoring, All, silence_logging, LoopRunner,
         log_errors, thread_state)
 from distributed.nanny import Nanny
 from distributed.scheduler import Scheduler
-from distributed.worker import Worker, _ncores
+from distributed.worker import Worker
 
 import logging
 
