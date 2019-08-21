@@ -13,7 +13,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'dask_kubernetes',
-    'google-cloud-storage'
+    'google-cloud-storage>=1.18'
     # TODO: put package requirements here
 ]
 
