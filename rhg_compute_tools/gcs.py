@@ -81,12 +81,12 @@ def rm(path, cred_path=None,
     '''Remove a file and/or directory from gcs. Must have already 
     authenticated to use. Need to pass a cred_path or have the appropriate
     environment variable set. A couple of gotchas:
-    1. If you don't end a path to a directory with a '/', it will not remove
-        anything.
-    2. If you don't pass ``recursive=True``, yet do pass a directory path 
-        (with appropriate trailing '/'), it will delete all of the files
-        immediately within that directory, but not any files in nested 
-        directories
+    - If you don't end a path to a directory with a '/', it will not remove
+    anything.
+    - If you don't pass ``recursive=True``, yet do pass a directory path 
+    (with appropriate trailing '/'), it will delete all of the files
+    immediately within that directory, but not any files in nested 
+    directories
 
     Parameters
     ----------
