@@ -82,7 +82,7 @@ def replicate_directory_structure_on_gcs(src, dst, storage_client):
         
         # make sure there is exactly one trailing slash:
         dest_path = dest_path.rstrip('/') + '/'
-        blob = bucket.Blob(dest_path)
+        blob = bucket.blob(dest_path)
         blob.upload_from_string('')
 
 
