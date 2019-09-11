@@ -47,6 +47,45 @@ def _get_path_types(src, dest):
     return src_gs, dest_gs, dest_gcs
 
 
+def replicate_directory_structure_on_gcs(src, dst, storage_client):
+    '''
+    Replicate a local directory structure on google cloud storage
+    
+    Parameters
+    ----------
+    
+    src : str
+        Path to the root directory on the source machine. The directory
+        structure within this directory will be reproduced within `dst`,
+        e.g. `/Users/myusername/my/data`
+    dst : str
+        A url for the root directory of the destination, starting with
+        `gs://[bucket_name]/`, e.g. `gs://my_bucket/path/to/my/data`
+    storage_client : object
+        An authenticated :py:class:`google.cloud.storage.client.Client` object
+    '''
+
+    if dst.startswith('gs://'):
+        dst = dst[5:]
+    elif dst.startswith('gcs://'):
+        dst = dst[6:]
+    else:
+        raise ValueError('dst must begin with `gs://` or `gcs://`')
+    
+    bucket_name = dst.split('/')[0]
+    blob_path = '/'.join(dst.split('/')[1:])
+    
+    bucket = storage_client.get_bucket(bucket_name)
+
+    for d in os.walk(src):
+        dest_path = os.path.join(blob_path, os.path.relpath(d, src))
+        
+        # make sure there is exactly one trailing slash:
+        dest_path = dest_path.rstrip('/') + '/'
+        blob = bucket.Blob(dest_path)
+        blob.upload_from_string('')
+
+
 def cp_to_gcs(*args, **kwargs):
     '''Deprecated. Use `cp_gcs`.'''
     return cp_gcs(*args, **kwargs)
