@@ -79,9 +79,14 @@ def replicate_directory_structure_on_gcs(src, dst, storage_client):
 
     for d, dirnames, files in os.walk(src):
         dest_path = os.path.join(blob_path, os.path.relpath(d, src))
-        
+
         # make sure there is exactly one trailing slash:
         dest_path = dest_path.rstrip('/') + '/'
+
+        # ignore "." directory
+        if dest_path == './':
+            continue
+
         blob = bucket.blob(dest_path)
         blob.upload_from_string('')
 
