@@ -60,4 +60,9 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     setup_requires=setup_requirements,
+    entry_points={
+        'console_scripts': [
+            'rct = rhg_compute_tools.cli:rct_cli',
+        ]
+    },
 )
