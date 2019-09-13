@@ -4,6 +4,24 @@ History
 
 .. current developments
 
+v0.1.8
+------
+
+* Deployment fixes.
+
+v0.1.7
+------
+
+* Design tools: use RHG & CIL colors & styles
+* Plotting helpers: generate cmaps with consistent colors & norms, and apply a colorbar to geopandas plots with nonlinear norms
+* Autoscaling fix for kubecluster: switch to dask_kubernetes.KubeCluster to allow use of recent bug fixes
+
+
+v0.1.6
+------
+
+* Add :py:func:`rhg_compute_tools.gcs.cp_gcs` and :py:func:`rhg_compute_tools.gcs.sync_gcs` utilities
+
 v0.1.5
 ------
 
