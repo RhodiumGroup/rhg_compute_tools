@@ -262,3 +262,10 @@ def recover(job_name, log_dir='.'):
             other = json.loads(content)
 
     return pending, errored, other
+
+
+class html(object):
+    def __init__(self, body):
+        self.body = body
+    def _repr_html_(self):
+        return self.body
