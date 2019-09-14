@@ -27,7 +27,8 @@ def tempfl_path(tmpdir):
 @pytest.mark.parametrize('credflag', ['-c', '--credentials', None])
 def test_repdirstruc(credflag, replicate_directory_structure_on_gcs_stub,
                      tmpdir, tempfl_path, monkeypatch):
-    """Test rct gcs repdirstruc for main input options"""
+    """Test rctools gcs repdirstruc for main input options
+    """
     # Setup CLI args
     cred_path = str(tempfl_path)
     credargs = [credflag, cred_path]
@@ -41,7 +42,7 @@ def test_repdirstruc(credflag, replicate_directory_structure_on_gcs_stub,
     # Run CLI
     runner = CliRunner()
     result = runner.invoke(
-        rhg_compute_tools.cli.rct_cli,
+        rhg_compute_tools.cli.rctools_cli,
         ['gcs', 'repdirstruc'] + credargs + [src_path, dst_path],
     )
 
@@ -52,7 +53,8 @@ def test_repdirstruc(credflag, replicate_directory_structure_on_gcs_stub,
 @pytest.mark.parametrize('credflag', ['-c', '--credentials', None])
 def test_repdirstruc_nocredfile(credflag, replicate_directory_structure_on_gcs_stub,
                                 tmpdir, monkeypatch):
-    """Test rct gcs repdirstruc for graceful fail when cred file missing"""
+    """Test rctools gcs repdirstruc for graceful fail when cred file missing
+    """
     # Setup CLI args
     cred_path = '_foobar.json'
     credargs = [credflag, cred_path]
@@ -66,12 +68,12 @@ def test_repdirstruc_nocredfile(credflag, replicate_directory_structure_on_gcs_s
     # Run CLI
     runner = CliRunner()
     result = runner.invoke(
-        rhg_compute_tools.cli.rct_cli,
+        rhg_compute_tools.cli.rctools_cli,
         ['gcs', 'repdirstruc'] + credargs + [src_path, dst_path],
     )
 
-    expected_output = 'Usage: rct-cli gcs repdirstruc [OPTIONS] SRC DST\nTry' \
-                      ' "rct-cli gcs repdirstruc -h" for help.\n\nError: ' \
+    expected_output = 'Usage: rctools-cli gcs repdirstruc [OPTIONS] SRC DST\nTry' \
+                      ' "rctools-cli gcs repdirstruc -h" for help.\n\nError: ' \
                       'Invalid value for "-c" / "--credentials": Path ' \
                       '"_foobar.json" does not exist.\n'
     assert result.output == expected_output

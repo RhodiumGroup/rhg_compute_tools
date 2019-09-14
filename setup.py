@@ -62,7 +62,7 @@ setup(
     setup_requires=setup_requirements,
     entry_points={
         'console_scripts': [
-            'rct = rhg_compute_tools.cli:rct_cli',
+            'rctools = rhg_compute_tools.cli:rctools_cli',
         ]
     },
 )
