@@ -4,6 +4,12 @@ History
 
 .. current developments
 
+v0.2.0
+------
+
+* Add CLI tools. See ``rctools gcs repdirstruc --help`` to start.
+
+
 v0.1.8
 ------
 
