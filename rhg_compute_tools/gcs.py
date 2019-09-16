@@ -47,13 +47,12 @@ def _get_path_types(src, dest):
     return src_gs, dest_gs, dest_gcs
 
 
-def replicate_directory_structure_on_gcs(src, dst, storage_client):
-    '''
+def replicate_directory_structure_on_gcs(src, dst, client_or_creds):
+    """
     Replicate a local directory structure on google cloud storage
-    
+
     Parameters
     ----------
-    
     src : str
         Path to the root directory on the source machine. The directory
         structure within this directory will be reproduced within `dst`,
@@ -61,9 +60,15 @@ def replicate_directory_structure_on_gcs(src, dst, storage_client):
     dst : str
         A url for the root directory of the destination, starting with
         `gs://[bucket_name]/`, e.g. `gs://my_bucket/path/to/my/data`
-    storage_client : object
-        An authenticated :py:class:`google.cloud.storage.client.Client` object
-    '''
+    client_or_creds : google.cloud.storage.client.Client or str
+        An authenticated :py:class:`google.cloud.storage.client.Client` object,
+        or a str path to storage credentials authentication file.
+    """
+    if isinstance(client_or_creds, str):
+        credentials = service_account.Credentials.from_service_account_file(
+            client_or_creds
+        )
+        client_or_creds = storage.Client(credentials=credentials)
 
     if dst.startswith('gs://'):
         dst = dst[5:]
@@ -71,11 +76,11 @@ def replicate_directory_structure_on_gcs(src, dst, storage_client):
         dst = dst[6:]
     else:
         raise ValueError('dst must begin with `gs://` or `gcs://`')
-    
+
     bucket_name = dst.split('/')[0]
     blob_path = '/'.join(dst.split('/')[1:])
-    
-    bucket = storage_client.get_bucket(bucket_name)
+
+    bucket = client_or_creds.get_bucket(bucket_name)
 
     for d, dirnames, files in os.walk(src):
         dest_path = os.path.join(blob_path, os.path.relpath(d, src))
