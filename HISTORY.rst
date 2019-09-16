@@ -7,15 +7,15 @@ History
 v0.2.0
 ------
 
-* Add CLI tools. See ``rctools gcs repdirstruc --help`` to start.
-* Add new function ``rhg_compute_tools.gcs.replicate_directory_structure_on_gcs`` to copy directory trees into GCS.
-* Fixes to docstrings and metadata (e.g. :issue:`43`, :issue:`45`).
+* Add CLI tools (:issue:`37`). See ``rctools gcs repdirstruc --help`` to start
+* Add new function ``rhg_compute_tools.gcs.replicate_directory_structure_on_gcs`` to copy directory trees into GCS
+* Fixes to docstrings and metadata (:issue:`43`) (:issue:`45`)
 
 
 v0.1.8
 ------
 
-* Deployment fixes.
+* Deployment fixes
 
 v0.1.7
 ------
