@@ -8,7 +8,7 @@ v0.2.0
 ------
 
 * Add CLI tools. See ``rctools gcs repdirstruc --help`` to start.
-* Add new function :py:func:`rhg_compute_tools.gcs.replicate_directory_structure_on_gcs` to copy directory trees into GCS.
+* Add new function ``rhg_compute_tools.gcs.replicate_directory_structure_on_gcs`` to copy directory trees into GCS.
 * Fixes to docstrings and metadata (e.g. :issue:`43`, :issue:`45`).
 
 
@@ -28,7 +28,7 @@ v0.1.7
 v0.1.6
 ------
 
-* Add :py:func:`rhg_compute_tools.gcs.cp_gcs` and :py:func:`rhg_compute_tools.gcs.sync_gcs` utilities
+* Add ``rhg_compute_tools.gcs.cp_gcs`` and ``rhg_compute_tools.gcs.sync_gcs`` utilities
 
 v0.1.5
 ------
