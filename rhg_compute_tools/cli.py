@@ -24,6 +24,13 @@ def gcs():
               envvar='GOOGLE_APPLICATION_CREDENTIALS',
               help='Optional path to GCS credentials file.')
 def repdirstruc(src, dst, credentials):
-    """Replicate a local directory structure onto GCS bucket.
+    """Replicate directory structure onto GCS bucket.
+
+    SRC is path to a local directory. Directories within will be replicated.
+    DST is gs://[bucket] and optional path to replicate SRC into.
+
+    If --credentials or -c is not explicitly given, checks the
+    GOOGLE_APPLICATIONS_CREDENTIALS environment variable for path to a GCS
+    credentials file.
     """
     replicate_directory_structure_on_gcs(src, dst, credentials)
