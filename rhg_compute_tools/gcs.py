@@ -69,6 +69,8 @@ def replicate_directory_structure_on_gcs(src, dst, client_or_creds):
             client_or_creds
         )
         client_or_creds = storage.Client(credentials=credentials)
+    elif client_or_creds is None:
+        client_or_creds = storage.Client()
 
     if dst.startswith('gs://'):
         dst = dst[5:]
