@@ -47,7 +47,7 @@ def _get_path_types(src, dest):
     return src_gs, dest_gs, dest_gcs
 
 
-def replicate_directory_structure_on_gcs(src, dst, client_or_creds):
+def replicate_directory_structure_on_gcs(src, dst, client_or_creds=None):
     """
     Replicate a local directory structure on google cloud storage
 
@@ -60,9 +60,14 @@ def replicate_directory_structure_on_gcs(src, dst, client_or_creds):
     dst : str
         A url for the root directory of the destination, starting with
         `gs://[bucket_name]/`, e.g. `gs://my_bucket/path/to/my/data`
-    client_or_creds : google.cloud.storage.client.Client or str
+    client_or_creds : google.cloud.storage.client.Client or str, optional
         An authenticated :py:class:`google.cloud.storage.client.Client` object,
-        or a str path to storage credentials authentication file.
+        or a str path to storage credentials authentication file. If None
+        is passed (default) will create a Client object with no args, using
+        the authorization credentials for the current environment. See the
+        [google cloud storage docs](
+        https://googleapis.dev/python/google-api-core/latest/auth.html)
+        for an overview of the authorization options.
     """
     if isinstance(client_or_creds, str):
         credentials = service_account.Credentials.from_service_account_file(
