@@ -8,7 +8,7 @@ v0.2.0
 ------
 
 * Add CLI tools (:issue:`37`). See ``rctools gcs repdirstruc --help`` to start
-* Add new function ``rhg_compute_tools.gcs.replicate_directory_structure_on_gcs`` to copy directory trees into GCS
+* Add new function ``rhg_compute_tools.gcs.replicate_directory_structure_on_gcs`` to copy directory trees into GCS. Users can authenticate with cred_file or with default google credentials (:issue:`51`)
 * Fixes to docstrings and metadata (:issue:`43`) (:issue:`45`)
 
 
