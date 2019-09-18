@@ -1,6 +1,5 @@
 import click
-from rhg_compute_tools.gcs import (replicate_directory_structure_on_gcs,
-                                   _authenticate_client)
+from rhg_compute_tools.gcs import replicate_directory_structure_on_gcs
 
 
 @click.group(
@@ -22,6 +21,7 @@ def gcs():
 @click.argument('src', type=click.Path(exists=True))
 @click.argument('dst', type=click.Path())
 @click.option('-c', '--credentials', type=click.Path(exists=True),
+              envvar='GOOGLE_APPLICATION_CREDENTIALS',
               help='Optional path to GCS credentials file.')
 def repdirstruc(src, dst, credentials):
     """Replicate directory structure onto GCS bucket.
@@ -31,9 +31,6 @@ def repdirstruc(src, dst, credentials):
 
     If --credentials or -c is not explicitly given, checks the
     GOOGLE_APPLICATION_CREDENTIALS environment variable for path to a GCS
-    credentials file, or default service accounts for authentication. See
-    https://googleapis.dev/python/google-api-core/latest/auth.html for more
-    details.
+    credentials file.
     """
-    client = _authenticate_client(credentials)
-    replicate_directory_structure_on_gcs(src, dst, client)
+    replicate_directory_structure_on_gcs(src, dst, credentials)

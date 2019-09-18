@@ -11,34 +11,6 @@ import subprocess
 import shlex
 
 
-def _authenticate_client(credentials=None):
-    """Convenience function to create an authenticated GCS client.
-
-    Parameters
-    ----------
-    credentials : str or None, optional
-        Str path to storage credentials authentication file. If None
-        is passed (default) will create a Client object with no args, using
-        the authorization credentials for the current environment. See the
-        [google cloud storage docs](
-        https://googleapis.dev/python/google-api-core/latest/auth.html)
-        for an overview of the authorization options.
-
-    Returns
-    -------
-    google.cloud.storage.Client
-    """
-    if credentials is None:
-        client = storage.Client()
-    else:
-        creds = service_account.Credentials.from_service_account_file(
-            str(credentials)
-        )
-        client = storage.Client(credentials=creds)
-
-    return client
-
-
 def get_bucket(cred_path):
     '''Return a bucket object from Rhg's GCS system.
 
@@ -75,7 +47,7 @@ def _get_path_types(src, dest):
     return src_gs, dest_gs, dest_gcs
 
 
-def replicate_directory_structure_on_gcs(src, dst, client):
+def replicate_directory_structure_on_gcs(src, dst, client_or_creds=None):
     """
     Replicate a local directory structure on google cloud storage
 
@@ -88,9 +60,23 @@ def replicate_directory_structure_on_gcs(src, dst, client):
     dst : str
         A url for the root directory of the destination, starting with
         `gs://[bucket_name]/`, e.g. `gs://my_bucket/path/to/my/data`
-    client : google.cloud.storage.client.Client
-        An authenticated :py:class:`google.cloud.storage.client.Client` object.
+    client_or_creds : google.cloud.storage.client.Client or str, optional
+        An authenticated :py:class:`google.cloud.storage.client.Client` object,
+        or a str path to storage credentials authentication file. If None
+        is passed (default) will create a Client object with no args, using
+        the authorization credentials for the current environment. See the
+        [google cloud storage docs](
+        https://googleapis.dev/python/google-api-core/latest/auth.html)
+        for an overview of the authorization options.
     """
+    if isinstance(client_or_creds, str):
+        credentials = service_account.Credentials.from_service_account_file(
+            client_or_creds
+        )
+        client_or_creds = storage.Client(credentials=credentials)
+    elif client_or_creds is None:
+        client_or_creds = storage.Client()
+
     if dst.startswith('gs://'):
         dst = dst[5:]
     elif dst.startswith('gcs://'):
@@ -101,7 +87,7 @@ def replicate_directory_structure_on_gcs(src, dst, client):
     bucket_name = dst.split('/')[0]
     blob_path = '/'.join(dst.split('/')[1:])
 
-    bucket = client.get_bucket(bucket_name)
+    bucket = client_or_creds.get_bucket(bucket_name)
 
     for d, dirnames, files in os.walk(src):
         dest_path = os.path.join(blob_path, os.path.relpath(d, src))

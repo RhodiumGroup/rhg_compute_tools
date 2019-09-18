@@ -11,13 +11,9 @@ import rhg_compute_tools.cli
 
 @pytest.fixture
 def replicate_directory_structure_on_gcs_stub(mocker):
-    mocker.patch.object(
-        rhg_compute_tools.cli,
-        'replicate_directory_structure_on_gcs',
-        new=lambda *args: click.echo(';'.join(args)),
-    )
-    mocker.patch.object(rhg_compute_tools.cli, '_authenticate_client',
-                        new=lambda x: str(x))
+    mocker.patch.object(rhg_compute_tools.cli,
+                        'replicate_directory_structure_on_gcs',
+                        new=lambda *args: click.echo(';'.join(args)))
 
 
 @pytest.fixture
@@ -40,8 +36,8 @@ def test_repdirstruc(credflag, replicate_directory_structure_on_gcs_stub,
     dst_path = 'gcs://foo/bar'
 
     if credflag is None:
+        monkeypatch.setenv('GOOGLE_APPLICATION_CREDENTIALS', cred_path)
         credargs = []
-        cred_path = str(None)
 
     # Run CLI
     runner = CliRunner()
@@ -54,9 +50,8 @@ def test_repdirstruc(credflag, replicate_directory_structure_on_gcs_stub,
     assert result.output == expected_output
 
 
-@pytest.mark.parametrize('credflag', ['-c', '--credentials'])
-def test_repdirstruc_nocredfile(credflag,
-                                replicate_directory_structure_on_gcs_stub,
+@pytest.mark.parametrize('credflag', ['-c', '--credentials', None])
+def test_repdirstruc_nocredfile(credflag, replicate_directory_structure_on_gcs_stub,
                                 tmpdir, monkeypatch):
     """Test rctools gcs repdirstruc for graceful fail when cred file missing
     """
@@ -66,6 +61,10 @@ def test_repdirstruc_nocredfile(credflag,
     src_path = str(tmpdir)
     dst_path = 'gcs://foo/bar'
 
+    if credflag is None:
+        monkeypatch.setenv('GOOGLE_APPLICATION_CREDENTIALS', cred_path)
+        credargs = []
+
     # Run CLI
     runner = CliRunner()
     result = runner.invoke(
@@ -73,8 +72,8 @@ def test_repdirstruc_nocredfile(credflag,
         ['gcs', 'repdirstruc'] + credargs + [src_path, dst_path],
     )
 
-    expected = 'Usage: rctools-cli gcs repdirstruc [OPTIONS] SRC DST\nTry' \
-               ' "rctools-cli gcs repdirstruc -h" for help.\n\nError: ' \
-               'Invalid value for "-c" / "--credentials": Path ' \
-               '"_foobar.json" does not exist.\n'
-    assert result.output == expected
+    expected_output = 'Usage: rctools-cli gcs repdirstruc [OPTIONS] SRC DST\nTry' \
+                      ' "rctools-cli gcs repdirstruc -h" for help.\n\nError: ' \
+                      'Invalid value for "-c" / "--credentials": Path ' \
+                      '"_foobar.json" does not exist.\n'
+    assert result.output == expected_output
