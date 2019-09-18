@@ -11,7 +11,7 @@ import subprocess
 import shlex
 
 
-def _authenticate_client(credentials=None):
+def authenticated_client(credentials=None):
     """Convenience function to create an authenticated GCS client.
 
     Parameters

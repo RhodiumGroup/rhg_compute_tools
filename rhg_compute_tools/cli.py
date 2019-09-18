@@ -1,6 +1,6 @@
 import click
 from rhg_compute_tools.gcs import (replicate_directory_structure_on_gcs,
-                                   _authenticate_client)
+                                   authenticated_client)
 
 
 @click.group(
@@ -35,5 +35,5 @@ def repdirstruc(src, dst, credentials):
     https://googleapis.dev/python/google-api-core/latest/auth.html for more
     details.
     """
-    client = _authenticate_client(credentials)
+    client = authenticated_client(credentials)
     replicate_directory_structure_on_gcs(src, dst, client)

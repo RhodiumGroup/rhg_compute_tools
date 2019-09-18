@@ -16,7 +16,7 @@ def replicate_directory_structure_on_gcs_stub(mocker):
         'replicate_directory_structure_on_gcs',
         new=lambda *args: click.echo(';'.join(args)),
     )
-    mocker.patch.object(rhg_compute_tools.cli, '_authenticate_client',
+    mocker.patch.object(rhg_compute_tools.cli, 'authenticated_client',
                         new=lambda x: str(x))
 
 
