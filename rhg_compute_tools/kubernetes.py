@@ -1,220 +1,8 @@
 # -*- coding: utf-8 -*-
-
-import dask
-import dask.distributed
-
-from distributed.deploy.adaptive import Adaptive
-from distributed.deploy.cluster import Cluster
-from distributed.deploy.local import LocalCluster
-from dask_kubernetes import KubeCluster
-from toolz import valmap, second, compose, groupby
-from distributed.utils import log_errors, PeriodicCallback, parse_timedelta
-
-import atexit
-from datetime import timedelta
-import logging
-import math
-from time import sleep
-import weakref
-import toolz
-
-from tornado import gen
-
-from distributed.core import CommClosedError
-from distributed.utils import (sync, ignoring, All, silence_logging, LoopRunner,
-        log_errors, thread_state)
-from distributed.nanny import Nanny
-from distributed.scheduler import Scheduler
-from distributed.worker import Worker
-
-import logging
-
-
-logger = logging.getLogger('distributed.deploy.adaptive')
-logger.setLevel(logging.DEBUG)
-
-
-class MyAdaptive(Adaptive):
-    def needs_cpu(self):
-        total_occupancy = self.scheduler.total_occupancy
-        total_cores = sum([ws.ncores for ws in self.scheduler.workers.values()])
-
-        if total_occupancy / (total_cores + 1e-9) > self.startup_cost * 2:
-            logger.info("CPU limit exceeded [%d occupancy / %d cores]",
-                        total_occupancy, total_cores)
-
-            num_workers = len(self.scheduler.workers)
-
-            tasks_processing = 0
-
-            for w in self.scheduler.workers.values():
-                tasks_processing += len(w.processing)
-
-                if tasks_processing > num_workers:
-                    logger.info(
-                        "pending tasks exceed number of workers "
-                        "[%d tasks / %d workers]",
-                        tasks_processing, num_workers)
-
-                    return True
-
-        return False
-
-
-class MyCluster(Cluster):
-    def adapt(self, **kwargs):
-        with ignoring(AttributeError):
-            self._adaptive.stop()
-        if not hasattr(self, '_adaptive_options'):
-            self._adaptive_options = {}
-        self._adaptive_options.update(kwargs)
-        self._adaptive = MyAdaptive(self.scheduler, self, **self._adaptive_options)
-        return self._adaptive
-
-
-class MyLocalCluster(MyCluster, LocalCluster):
-    pass
-
-
-'''
-subclass dask_kubernetes.KubeCluster
-'''
-
-import getpass
-import logging
-import os
-import socket
-import string
-import time
-from urllib.parse import urlparse
-import uuid
-from weakref import finalize
-
-try:
-    import yaml
-except ImportError:
-    yaml = False
-
-import dask
-from distributed.deploy import LocalCluster, Cluster
-from distributed.comm.utils import offload
-import kubernetes
-from tornado import gen
-
-from dask_kubernetes.objects import make_pod_from_dict, clean_pod_template
-
-
-class MyKubeCluster(MyCluster, KubeCluster):
-    def __init__(
-            self,
-            pod_template=None,
-            name=None,
-            namespace=None,
-            n_workers=None,
-            host=None,
-            port=None,
-            env=None,
-            **kwargs
-    ):
-        name = name or dask.config.get('kubernetes.name')
-        namespace = namespace or dask.config.get('kubernetes.namespace')
-        n_workers = n_workers if n_workers is not None else dask.config.get('kubernetes.count.start')
-        host = host or dask.config.get('kubernetes.host')
-        port = port if port is not None else dask.config.get('kubernetes.port')
-        env = env if env is not None else dask.config.get('kubernetes.env')
-
-        if not pod_template and dask.config.get('kubernetes.worker-template', None):
-            d = dask.config.get('kubernetes.worker-template')
-            d = dask.config.expand_environment_variables(d)
-            pod_template = make_pod_from_dict(d)
-
-        if not pod_template and dask.config.get('kubernetes.worker-template-path', None):
-            import yaml
-            fn = dask.config.get('kubernetes.worker-template-path')
-            fn = fn.format(**os.environ)
-            with open(fn) as f:
-                d = yaml.safe_load(f)
-            d = dask.config.expand_environment_variables(d)
-            pod_template = make_pod_from_dict(d)
-
-        if not pod_template:
-            msg = ("Worker pod specification not provided. See KubeCluster "
-                   "docstring for ways to specify workers")
-            raise ValueError(msg)
-
-        self.cluster = MyLocalCluster(ip=host or socket.gethostname(),
-                                    scheduler_port=port,
-                                    n_workers=0, **kwargs)
-        try:
-            kubernetes.config.load_incluster_config()
-        except kubernetes.config.ConfigException:
-            kubernetes.config.load_kube_config()
-
-        self.core_api = kubernetes.client.CoreV1Api()
-
-        if namespace is None:
-            namespace = _namespace_default()
-
-        name = name.format(user=getpass.getuser(),
-                           uuid=str(uuid.uuid4())[:10],
-                           **os.environ)
-        name = escape(name)
-
-        self.pod_template = clean_pod_template(pod_template)
-        # Default labels that can't be overwritten
-        self.pod_template.metadata.labels['dask.org/cluster-name'] = name
-        self.pod_template.metadata.labels['user'] = escape(getpass.getuser())
-        self.pod_template.metadata.labels['app'] = 'dask'
-        self.pod_template.metadata.labels['component'] = 'dask-worker'
-        self.pod_template.metadata.namespace = namespace
-
-        self.pod_template.spec.containers[0].env.append(
-            kubernetes.client.V1EnvVar(name='DASK_SCHEDULER_ADDRESS',
-                                       value=self.scheduler_address)
-        )
-        if env:
-            self.pod_template.spec.containers[0].env.extend([
-                kubernetes.client.V1EnvVar(name=k, value=str(v))
-                for k, v in env.items()
-            ])
-        self.pod_template.metadata.generate_name = name
-
-        finalize(self, _cleanup_pods, self.namespace, self.pod_template.metadata.labels)
-
-        if n_workers:
-            self.scale(n_workers)
-
-def _cleanup_pods(namespace, labels):
-    """ Remove all pods with these labels in this namespace """
-    api = kubernetes.client.CoreV1Api()
-    pods = api.list_namespaced_pod(namespace, label_selector=format_labels(labels))
-    for pod in pods.items:
-        try:
-            api.delete_namespaced_pod(pod.metadata.name, namespace,
-                                      kubernetes.client.V1DeleteOptions())
-            logger.info('Deleted pod: %s', pod.metadata.name)
-        except kubernetes.client.rest.ApiException as e:
-            # ignore error if pod is already removed
-            if e.status != 404:
-                raise
-
-def _namespace_default():
-    ns_path = '/var/run/secrets/kubernetes.io/serviceaccount/namespace'
-    if os.path.exists(ns_path):
-        with open(ns_path) as f:
-            return f.read().strip()
-    return 'default'
-
-
-valid_characters = string.ascii_letters + string.digits + '_-.'
-
-
-def escape(s):
-    return ''.join(c for c in s if c in valid_characters)
-
-
-
 """Tools for interacting with kubernetes."""
+
+from dask_kubernetes import KubeCluster
+import dask
 import dask.distributed as dd
 import yaml as yml
 import traceback as tb
@@ -243,6 +31,7 @@ def _append_docstring(func_with_docstring):
         return func
     return decorator
 
+
 def get_cluster(
         name=None,
         extra_pip_packages=None,
@@ -255,7 +44,8 @@ def get_cluster(
         env_items=None,
         scaling_factor=1,
         dask_config_dict={},
-        template_path='~/worker-template.yml'):
+        template_path='~/worker-template.yml',
+        **kwargs):
     """
     Start dask.kubernetes cluster and dask.distributed client
 
@@ -333,9 +123,8 @@ def get_cluster(
 
     """
 
-    ## update dask settings
+    # update dask settings
     dask.config.set(dask_config_dict)
-
 
     template_path = os.path.expanduser(template_path)
 
@@ -362,7 +151,7 @@ def get_cluster(
         container['env'].append({
             'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
             'value': cred_path})
-        
+
     elif cred_name is not None:
         container['env'].append({
             'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
@@ -414,7 +203,7 @@ def get_cluster(
     requests['cpu'] = format_request(float(cpus) * scaling_factor)
 
     # start cluster and client and return
-    cluster = MyKubeCluster.from_dict(template)
+    cluster = KubeCluster.from_dict(template)
 
     client = dd.Client(cluster)
 

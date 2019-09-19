@@ -10,38 +10,53 @@ from datetime import datetime as dt
 import subprocess
 import shlex
 
-def get_client(cred_path, project='rhg-hub'):
-    '''Return a :py:class:`google.cloud.storage.Client` object from Rhg's GCS system.
+
+def authenticated_client(credentials=None, **client_kwargs):
+    """Convenience function to create an authenticated GCS client.
 
     Parameters
     ----------
-    cred_path : str
-        Path to credentials file. Default is the default location on RHG
-        workers.
-    project : str, optional
-        The name of the project we are accessing. Default is ``rhg-hub``.
-        
+    credentials : str or None, optional
+        Str path to storage credentials authentication file. If None
+        is passed (default) will create a Client object with no args, using
+        the authorization credentials for the current environment. See the
+        [google cloud storage docs](
+        https://googleapis.dev/python/google-api-core/latest/auth.html)
+        for an overview of the authorization options.
+    client_kwargs : optional
+        kwargs to pass to the `get_client` function
+
     Returns
     -------
-    :py:class:`google.cloud.storage.Client`
-    '''
-    credentials = service_account.Credentials.from_service_account_file(
-        cred_path)
-    return storage.Client(project=project, credentials=credentials)
-    
-    
-def get_bucket(cred_path, bucket_name='rhg-data', return_client=False, **client_kwargs):
+    google.cloud.storage.Client
+    """
+    if credentials is None:
+        client = storage.Client()
+    else:
+        creds = service_account.Credentials.from_service_account_file(
+            str(credentials)
+        )
+        client = storage.Client(credentials=creds, **client_kwargs)
+
+    return client
+
+
+def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False, **client_kwargs):
     '''Return a bucket object from Rhg's GCS system.
 
     Parameters
     ----------
-    cred_path : str
-        Path to credentials file. Default is the default location on RHG
-        workers.
+    credentials : str or None, optional
+        Str path to storage credentials authentication file. If None
+        is passed (default) will create a Client object with no args, using
+        the authorization credentials for the current environment. See the
+        [google cloud storage docs](
+        https://googleapis.dev/python/google-api-core/latest/auth.html)
+        for an overview of the authorization options.
     bucket_name : str, optional
         Name of bucket. Typically, we work with ``rhg_data`` (default)
     return_client : bool, optional
-        Return 
+        Return the Client object as a second object.
     client_kwargs : optional
         kwargs to pass to the `get_client` function
 
@@ -49,7 +64,8 @@ def get_bucket(cred_path, bucket_name='rhg-data', return_client=False, **client_
     -------
     bucket : :py:class:`google.cloud.storage.bucket.Bucket`
     '''
-    client = get_client(cred_path, **client_kwargs)
+    client = authenticated_client(credentials=credentials,
+                                  **client_kwargs)
     result = client.get_bucket(bucket_name)
     
     if return_client:
@@ -62,17 +78,17 @@ def _remove_prefix(text, prefix='/gcs/rhg-data/'):
     return text[text.startswith(prefix) and len(prefix):]
 
 
-def _get_path_types(src,dest):
+def _get_path_types(src, dest):
     src_gs = src
     dest_gs = dest
     dest_gcs = dest
     if src_gs.startswith('/gcs/'):
-        src_gs = src.replace('/gcs/','gs://')
+        src_gs = src.replace('/gcs/', 'gs://')
     if dest_gs.startswith('/gcs/'):
         dest_gs = dest.replace('/gcs/', 'gs://')
     if dest_gcs.startswith('gs://'):
-        dest_gcs = dest.replace('gs://', '/gcs/')  
-        
+        dest_gcs = dest.replace('gs://', '/gcs/')
+
     return src_gs, dest_gs, dest_gcs
 
 
@@ -133,16 +149,58 @@ def rm(path, cred_path=None,
     return dt.now() - start_time
 
 
+def replicate_directory_structure_on_gcs(src, dst, client):
+    """
+    Replicate a local directory structure on google cloud storage
+
+    Parameters
+    ----------
+    src : str
+        Path to the root directory on the source machine. The directory
+        structure within this directory will be reproduced within `dst`,
+        e.g. `/Users/myusername/my/data`
+    dst : str
+        A url for the root directory of the destination, starting with
+        `gs://[bucket_name]/`, e.g. `gs://my_bucket/path/to/my/data`
+    client : google.cloud.storage.client.Client
+        An authenticated :py:class:`google.cloud.storage.client.Client` object.
+    """
+    if dst.startswith('gs://'):
+        dst = dst[5:]
+    elif dst.startswith('gcs://'):
+        dst = dst[6:]
+    else:
+        raise ValueError('dst must begin with `gs://` or `gcs://`')
+
+    bucket_name = dst.split('/')[0]
+    blob_path = '/'.join(dst.split('/')[1:])
+
+    bucket = client.get_bucket(bucket_name)
+
+    for d, dirnames, files in os.walk(src):
+        dest_path = os.path.join(blob_path, os.path.relpath(d, src))
+
+        # make sure there is exactly one trailing slash:
+        dest_path = dest_path.rstrip('/') + '/'
+
+        # ignore "." directory
+        if dest_path == './':
+            continue
+
+        blob = bucket.blob(dest_path)
+        blob.upload_from_string('')
+
+
 def cp_to_gcs(*args, **kwargs):
     '''Deprecated. Use `cp_gcs`.'''
     return cp_gcs(*args, **kwargs)
-    
+
 
 def cp_gcs(src, dest, cp_flags=[]):
     '''Copy a file or recursively copy a directory from local
     path to GCS or vice versa. Must have already authenticated to use.
-    Notebook servers are automatically authenticated, but workers 
-    need to pass the path to the authentication json file to the 
+    Notebook servers are automatically authenticated, but workers
+    need to pass the path to the authentication json file to the
     GCLOUD_DEFAULT_TOKEN_FILE env var.
     This is done automatically for rhg-data.json when using the get_worker
     wrapper.
@@ -152,10 +210,10 @@ def cp_gcs(src, dest, cp_flags=[]):
     Parameters
     ----------
     src, dest : str
-        The paths to the source and destination file or directory. 
+        The paths to the source and destination file or directory.
         If on GCS, either the `/gcs` or `gs:/` prefix will work.
     cp_flags : list of str, optional
-        String of flags to add to the gsutil cp command. e.g. 
+        String of flags to add to the gsutil cp command. e.g.
         `cp_flags=['r']` will run the command `gsutil -m cp -r...`
         (recursive copy)
 
@@ -174,8 +232,8 @@ def cp_gcs(src, dest, cp_flags=[]):
     # make sure we're using URL
     # if /gcs or gs:/ are not in src or not in dest
     # then these won't change anything
-    src_gs, dest_gs, dest_gcs = _get_path_types(src,dest)
-    
+    src_gs, dest_gs, dest_gcs = _get_path_types(src, dest)
+
     # if directory already existed cp would put src into dest_gcs
     if exists(dest_gcs):
         dest_base = join(dest_gcs, basename(src))
@@ -183,7 +241,11 @@ def cp_gcs(src, dest, cp_flags=[]):
     else:
         dest_base = dest_gcs
 
-    cmd = 'gsutil -m cp ' + ' '.join(['-'+f for f in cp_flags]) + ' {} {}'.format(src_gs, dest_gs)
+    cmd = (
+        'gsutil -m cp '
+        + ' '.join(['-' + f for f in cp_flags])
+        + ' {} {}'.format(src_gs, dest_gs))
+
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
@@ -200,11 +262,13 @@ def cp_gcs(src, dest, cp_flags=[]):
 
     return stdout, stderr, end_time - st_time
 
+
 def sync_to_gcs(*args, **kwargs):
     '''Deprecated. Use sync_gcs'''
     return sync_gcs(*args, **kwargs)
 
-def sync_gcs(src, dest, sync_flags=['r','d']):
+
+def sync_gcs(src, dest, sync_flags=['r', 'd']):
     '''Sync a directory from local to GCS or vice versa. Uses `gsutil rsync`.
     Must have already authenticated to use. Notebook servers
     are automatically authenticated, but workers need to pass the path
@@ -217,10 +281,10 @@ def sync_gcs(src, dest, sync_flags=['r','d']):
     Parameters
     ----------
     src, dest : str
-        The paths to the source and destination file or directory. 
+        The paths to the source and destination file or directory.
         If on GCS, either the `/gcs` or `gs:/` prefix will work.
     sync_flags : list of str, optional
-        String of flags to add to the gsutil cp command. e.g. 
+        String of flags to add to the gsutil cp command. e.g.
         `sync_flags=['r','d']` will run the command `gsutil -m cp -r -d...`
         (recursive copy, delete any files on dest that are not on src).
         This is the default set of flags.
@@ -240,20 +304,24 @@ def sync_gcs(src, dest, sync_flags=['r','d']):
     # remove trailing /'s
     src = src.rstrip('/')
     dest = dest.rstrip('/')
-    
+
     # make sure we're using URL
     # if /gcs or gs:/ are not in src or not in dest
     # then these won't change anything
-    src_gs, dest_gs, dest_gcs = _get_path_types(src,dest)
+    src_gs, dest_gs, dest_gcs = _get_path_types(src, dest)
 
-    cmd = 'gsutil -m rsync ' + ' '.join(['-'+f for f in sync_flags]) + ' {} {}'.format(src_gs, dest_gs)
+    cmd = (
+        'gsutil -m rsync '
+        + ' '.join(['-' + f for f in sync_flags])
+        + ' {} {}'.format(src_gs, dest_gs))
+
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
 
-    # need to add directories if you were recursively copying a directory TO gcs
-    # now make directory blobs on gcs so that gcsfuse recognizes it
+    # need to add directories if you were recursively copying a directory TO
+    # gcs now make directory blobs on gcs so that gcsfuse recognizes it
     if dest_gcs.startswith('/gcs/'):
         dirs_to_make = [x[0].replace(src, dest_gcs) for x in os.walk(src)]
         for d in dirs_to_make:

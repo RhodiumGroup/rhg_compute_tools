@@ -1,0 +1,53 @@
+# Author: Rhodium Group, LLC
+
+lines.solid_capstyle: butt
+
+legend.fancybox: true
+
+axes.prop_cycle: cycler('color', ['0078AD', '77B530', 'E7B731', 'E97625', 'C32524', '915FA4'])
+
+axes.labelsize: large
+axes.axisbelow: true
+axes.grid: false
+axes.edgecolor: 000000
+axes.linewidth: 0.75
+axes.titlesize: x-large
+
+patch.edgecolor: f0f0f0
+patch.linewidth: 0.5
+
+svg.fonttype: path
+
+grid.linewidth: 0
+grid.color: cbcbcb
+
+xtick.major.size: 0
+xtick.minor.size: 0
+ytick.major.size: 0
+ytick.minor.size: 0
+
+axes.spines.top : False
+axes.spines.right : False
+
+font.sans-serif : Fira Sans
+font.family : sans-serif
+
+figure.subplot.left: 0.08
+figure.subplot.right: 0.95
+figure.subplot.bottom: 0.07
+
+figure.facecolor: ffffff
+figure.edgecolor: ffffff
+savefig.facecolor: ffffff
+savefig.edgecolor: ffffff
+legend.frameon: False
+
+
+# rhg powerpoint format
+
+figure.figsize : 9.5, 5.5
+
+font.size : 11.0
+legend.fontsize : 11.0
+
+lines.linewidth : 2
