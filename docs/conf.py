@@ -294,5 +294,5 @@ intersphinx_mapping = {
     'xarray': ('http://xarray.pydata.org/en/stable/', None),
     'dask': ('http://docs.dask.org/en/latest/', None),
     'dask_kubernetes': ('https://kubernetes.dask.org/en/latest/', None),
-    'google': ('https://googleapis.github.io/google-cloud-python/latest/', None),
+    'google': ('https://googleapis.dev/python/storage/latest/', None),
 }
