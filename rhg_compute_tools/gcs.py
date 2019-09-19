@@ -92,7 +92,7 @@ def _get_path_types(src, dest):
     return src_gs, dest_gs, dest_gcs
 
 
-def rm(path, cred_path=None, 
+def rm(path, credentials=None, 
        recursive=False, **bucket_kwargs):
     '''Remove a file and/or directory from gcs. Must have already 
     authenticated to use. Need to pass a cred_path or have the appropriate
@@ -108,7 +108,7 @@ def rm(path, cred_path=None,
     ----------
     path : str
         Path to file/directory you want to remove
-    cred_path : str, optional
+    credentials : str, optional
         Only optional if you have already passed the path to your credentials
         via the ``GCLOUD_DEFAULT_TOKEN_FILE`` env var.
     recursive : bool, optional
@@ -123,26 +123,27 @@ def rm(path, cred_path=None,
     :py:class:`datetime.timedelta`
         Time it took to copy file(s).
     '''
+    from packaging import version
     
     start_time = dt.now()
     path = _remove_prefix(path)
     
-    if cred_path is None:
-        try:
-            cred_path = os.environ['GCLOUD_DEFAULT_TOKEN_FILE']
-        except KeyError as err:
-            raise KeyError('You must pass cred_path or set the '
-                           'GCLOUD_DEFAULT_TOKEN_FILE environment variable') from err
-    
-    bucket, client = get_bucket(cred_path, return_client=True, **bucket_kwargs)
+    bucket, client = get_bucket(credentials, return_client=True, **bucket_kwargs)
     
     if recursive:
         delimiter=None
     else:
         delimiter='/'
+    
+    blob_kwargs = dict(prefix=path,
+                       delimiter=delimiter,
+                       fields='items(name,generation)')
+    # deal with different call sigantures
+    if version.parse(storage.__version__) >= version.parse('1.17'):
+        blobs = client.list_blobs(bucket, **blob_kwargs)
+    else:
+        blobs = bucket.list_blobs(**blob_kwargs)
         
-    blobs = client.list_blobs(bucket, prefix=path, delimiter=delimiter, 
-                              fields='items(name,generation)')
     for b in blobs:
         b.delete()
         
