@@ -84,7 +84,7 @@ def get_cluster(
         .. code-block:: python
 
             [{
-                'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
+                'name': 'GOOGLE_APPLICATION_CREDENTIALS',
                 'value': '/opt/gcsfuse_tokens/rhg-data.json'}])
 
     scaling_factor: float, optional
@@ -149,12 +149,12 @@ def get_cluster(
 
     if cred_path is not None:
         container['env'].append({
-            'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
+            'name': 'GOOGLE_APPLICATION_CREDENTIALS',
             'value': cred_path})
 
     elif cred_name is not None:
         container['env'].append({
-            'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
+            'name': 'GOOGLE_APPLICATION_CREDENTIALS',
             'value': '/opt/gcsfuse_tokens/{}.json'.format(cred_name)})
 
     if env_items is not None:
