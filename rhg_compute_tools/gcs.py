@@ -41,7 +41,7 @@ def authenticated_client(credentials=None, **client_kwargs):
     return client
 
 
-def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False, 
+def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False,
                **client_kwargs):
     '''Return a bucket object from Rhg's GCS system.
 
@@ -68,7 +68,7 @@ def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False,
     client = authenticated_client(credentials=credentials,
                                   **client_kwargs)
     result = client.get_bucket(bucket_name)
-    
+
     if return_client:
         result = (result, client)
 
@@ -93,16 +93,16 @@ def _get_path_types(src, dest):
     return src_gs, dest_gs, dest_gcs
 
 
-def rm(path, credentials=None, 
+def rm(path, credentials=None,
        recursive=False, **bucket_kwargs):
-    '''Remove a file and/or directory from gcs. Must have already 
+    '''Remove a file and/or directory from gcs. Must have already
     authenticated to use. Need to pass a cred_path or have the appropriate
     environment variable set. A couple of gotchas:
     - If you don't end a path to a directory with a '/', it will not remove
     anything.
-    - If you don't pass ``recursive=True``, yet do pass a directory path 
+    - If you don't pass ``recursive=True``, yet do pass a directory path
     (with appropriate trailing '/'), it will delete all of the files
-    immediately within that directory, but not any files in nested 
+    immediately within that directory, but not any files in nested
     directories
 
     Parameters
@@ -116,7 +116,7 @@ def rm(path, credentials=None,
         Whether to continue to walk the directory tree to remove files in
         nested directories
     bucket_kwargs :
-        kwargs to pass when instantiating a 
+        kwargs to pass when instantiating a
         :py:class:`google.cloud.storage.Bucket` instance
 
     Returns
@@ -125,18 +125,18 @@ def rm(path, credentials=None,
         Time it took to copy file(s).
     '''
     from packaging import version
-    
+
     start_time = dt.now()
     path = _remove_prefix(path)
-    
+
     bucket, client = get_bucket(credentials, return_client=True,
                                 **bucket_kwargs)
-    
+
     if recursive:
         delimiter = None
     else:
         delimiter = '/'
-    
+
     blob_kwargs = dict(prefix=path,
                        delimiter=delimiter,
                        fields='items(name,generation)')
@@ -145,10 +145,10 @@ def rm(path, credentials=None,
         blobs = client.list_blobs(bucket, **blob_kwargs)
     else:
         blobs = bucket.list_blobs(**blob_kwargs)
-        
+
     for b in blobs:
         b.delete()
-        
+
     return dt.now() - start_time
 
 
@@ -207,7 +207,7 @@ def cp_gcs(src, dest, cp_flags=[]):
     GCLOUD_DEFAULT_TOKEN_FILE env var.
     This is done automatically for rhg-data.json when using the get_worker
     wrapper.
-    
+
     TODO: make this use the API rather than calling the gsutil command line
 
     Parameters
@@ -278,7 +278,7 @@ def sync_gcs(src, dest, sync_flags=['r', 'd']):
     to the authentication json file to the GCLOUD_DEFAULT_TOKEN_FILE env var.
     This is done automatically for rhg-data.json when using the get_worker
     wrapper.
-    
+
     TODO: make this use the API rather than calling the gsutil command line
 
     Parameters

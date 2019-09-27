@@ -148,8 +148,8 @@ def get_cluster(
             'value': extra_conda_packages})
 
     if cred_path is not None:
-        # can remove this first env var once 
-        # worker docker image is updated to point to 
+        # can remove this first env var once
+        # worker docker image is updated to point to
         # 'GOOGLE_APPLCIATION_CREDENTIALS'
         container['env'].append({
             'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
@@ -159,8 +159,8 @@ def get_cluster(
             'value': cred_path})
 
     elif cred_name is not None:
-        # can remove this first env var once 
-        # worker docker image is updated to point to 
+        # can remove this first env var once
+        # worker docker image is updated to point to
         # 'GOOGLE_APPLCIATION_CREDENTIALS'
         container['env'].append({
             'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
