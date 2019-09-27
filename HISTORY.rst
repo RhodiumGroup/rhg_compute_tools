@@ -10,7 +10,8 @@ v0.2.0
 * Add CLI tools (:issue:`37`). See ``rctools gcs repdirstruc --help`` to start
 * Add new function ``rhg_compute_tools.gcs.replicate_directory_structure_on_gcs`` to copy directory trees into GCS. Users can authenticate with cred_file or with default google credentials (:issue:`51`)
 * Fixes to docstrings and metadata (:issue:`43`) (:issue:`45`)
-
+* Add new function ``rhg_compute_tools.gcs.rm`` to remove files/directories on GCS using the ``google.cloud.storage`` API
+* Store one additional environment variable when passing ``cred_path`` to ``rhg_compute_tools.kubernetes.get_cluster`` so that the ``google.cloud.storage`` API will be authenticated in addition to ``gsutil``
 
 v0.1.8
 ------
