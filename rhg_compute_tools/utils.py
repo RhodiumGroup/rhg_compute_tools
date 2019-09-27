@@ -267,5 +267,6 @@ def recover(job_name, log_dir='.'):
 class html(object):
     def __init__(self, body):
         self.body = body
+
     def _repr_html_(self):
         return self.body

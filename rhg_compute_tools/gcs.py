@@ -41,7 +41,8 @@ def authenticated_client(credentials=None, **client_kwargs):
     return client
 
 
-def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False, **client_kwargs):
+def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False, 
+               **client_kwargs):
     '''Return a bucket object from Rhg's GCS system.
 
     Parameters
@@ -115,8 +116,8 @@ def rm(path, credentials=None,
         Whether to continue to walk the directory tree to remove files in
         nested directories
     bucket_kwargs :
-        kwargs to pass when instantiating a :py:class:`google.cloud.storage.Bucket`
-        instance
+        kwargs to pass when instantiating a 
+        :py:class:`google.cloud.storage.Bucket` instance
 
     Returns
     -------
@@ -128,12 +129,13 @@ def rm(path, credentials=None,
     start_time = dt.now()
     path = _remove_prefix(path)
     
-    bucket, client = get_bucket(credentials, return_client=True, **bucket_kwargs)
+    bucket, client = get_bucket(credentials, return_client=True,
+                                **bucket_kwargs)
     
     if recursive:
-        delimiter=None
+        delimiter = None
     else:
-        delimiter='/'
+        delimiter = '/'
     
     blob_kwargs = dict(prefix=path,
                        delimiter=delimiter,
