@@ -33,7 +33,8 @@ pip:
 Features
 --------
 
-## Kubernetes tools
+Kubernetes tools
+~~~~~~~~~~~~~~~~
 
 * easily spin up a preconfigured cluster with ``get_cluster()``, or flavors with ``get_micro_cluster()``, ``get_standard_cluster()``, ``get_big_cluster()``, or ``get_giant_cluster()``.
 
@@ -42,9 +43,12 @@ Features
     >>> import rhg_compute_tools.kubernetes as rhgk
     >>> cluster, client = rhgk.get_cluster()
 
-## Google cloud storage utilities
+Google cloud storage utilities
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Utilities for managing google cloud storage directories in parallel from the command line or via a python API
+
+.. code-block:: python
 
    >>> import rhg_compute_tools.gcs as gcs
    >>> gcs.sync_gcs('my_data_dir', 'gs://my-bucket/my_data_dir')
