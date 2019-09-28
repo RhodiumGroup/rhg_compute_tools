@@ -10,6 +10,7 @@ styles = [
         os.path.dirname(rhg_compute_tools.__file__),
         'design', 'styles'))]
 
+
 def test_imports():
     import rhg_compute_tools.design
     import matplotlib.cm
@@ -22,7 +23,6 @@ def test_imports():
 
 @pytest.mark.parametrize('style', styles)
 def test_mplstyles(style):
-    import rhg_compute_tools.design
     import matplotlib.style
 
     with matplotlib.style.context(style):

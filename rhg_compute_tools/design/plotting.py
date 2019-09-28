@@ -25,7 +25,7 @@ def get_color_scheme(values, cmap=None, colors=None, levels=None, how=None):
         list of colors to use in a discrete colormap, or with which
         to create a custom color map
     levels : list-like, optional
-        boundaries of discrete colormap, provide 
+        boundaries of discrete colormap, provide
     how : str, optional
         Optional setting form ``{'linear', 'log', 'symlog', None}``.
         Used to construct the returned ``norm`` object, which defines

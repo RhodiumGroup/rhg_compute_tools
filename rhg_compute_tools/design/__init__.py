@@ -29,6 +29,7 @@ _load_colors()
 # for (sysfont, ext) in RHG_FONTS:
 #     fm.findfont(sysfont, fontext=ext, rebuild_if_missing=False)
 
-from matplotlib.font_manager import _rebuild; _rebuild()
+from matplotlib.font_manager import _rebuild
+_rebuild()
 
 __all__ = ['get_color_scheme', 'add_colorbar']

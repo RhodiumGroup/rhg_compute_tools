@@ -11,7 +11,7 @@ import subprocess
 import shlex
 
 
-def authenticated_client(credentials=None):
+def authenticated_client(credentials=None, **client_kwargs):
     """Convenience function to create an authenticated GCS client.
 
     Parameters
@@ -23,6 +23,8 @@ def authenticated_client(credentials=None):
         [google cloud storage docs](
         https://googleapis.dev/python/google-api-core/latest/auth.html)
         for an overview of the authorization options.
+    client_kwargs : optional
+        kwargs to pass to the `get_client` function
 
     Returns
     -------
@@ -34,31 +36,47 @@ def authenticated_client(credentials=None):
         creds = service_account.Credentials.from_service_account_file(
             str(credentials)
         )
-        client = storage.Client(credentials=creds)
+        client = storage.Client(credentials=creds, **client_kwargs)
 
     return client
 
 
-def get_bucket(cred_path):
+def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False,
+               **client_kwargs):
     '''Return a bucket object from Rhg's GCS system.
 
     Parameters
     ----------
-    cred_path : str
-        Path to credentials file. Default is the default location on RHG
-        workers.
+    credentials : str or None, optional
+        Str path to storage credentials authentication file. If None
+        is passed (default) will create a Client object with no args, using
+        the authorization credentials for the current environment. See the
+        [google cloud storage docs](
+        https://googleapis.dev/python/google-api-core/latest/auth.html)
+        for an overview of the authorization options.
+    bucket_name : str, optional
+        Name of bucket. Typically, we work with ``rhg_data`` (default)
+    return_client : bool, optional
+        Return the Client object as a second object.
+    client_kwargs : optional
+        kwargs to pass to the `get_client` function
 
     Returns
     -------
     bucket : :py:class:`google.cloud.storage.bucket.Bucket`
     '''
+    client = authenticated_client(credentials=credentials,
+                                  **client_kwargs)
+    result = client.get_bucket(bucket_name)
 
-    credentials = service_account.Credentials.from_service_account_file(
-        cred_path)
-    sclient = storage.Client(credentials=credentials)
-    bucket = sclient.get_bucket('rhg-data')
+    if return_client:
+        result = (result, client)
 
-    return bucket
+    return result
+
+
+def _remove_prefix(text, prefix='/gcs/rhg-data/'):
+    return text[text.startswith(prefix) and len(prefix):]
 
 
 def _get_path_types(src, dest):
@@ -73,6 +91,65 @@ def _get_path_types(src, dest):
         dest_gcs = dest.replace('gs://', '/gcs/')
 
     return src_gs, dest_gs, dest_gcs
+
+
+def rm(path, credentials=None,
+       recursive=False, **bucket_kwargs):
+    '''Remove a file and/or directory from gcs. Must have already
+    authenticated to use. Need to pass a cred_path or have the appropriate
+    environment variable set. A couple of gotchas:
+    - If you don't end a path to a directory with a '/', it will not remove
+    anything.
+    - If you don't pass ``recursive=True``, yet do pass a directory path
+    (with appropriate trailing '/'), it will delete all of the files
+    immediately within that directory, but not any files in nested
+    directories
+
+    Parameters
+    ----------
+    path : str
+        Path to file/directory you want to remove
+    credentials : str, optional
+        Only optional if you have already passed the path to your credentials
+        via the ``GCLOUD_DEFAULT_TOKEN_FILE`` env var.
+    recursive : bool, optional
+        Whether to continue to walk the directory tree to remove files in
+        nested directories
+    bucket_kwargs :
+        kwargs to pass when instantiating a
+        :py:class:`google.cloud.storage.Bucket` instance
+
+    Returns
+    -------
+    :py:class:`datetime.timedelta`
+        Time it took to copy file(s).
+    '''
+    from packaging import version
+
+    start_time = dt.now()
+    path = _remove_prefix(path)
+
+    bucket, client = get_bucket(credentials, return_client=True,
+                                **bucket_kwargs)
+
+    if recursive:
+        delimiter = None
+    else:
+        delimiter = '/'
+
+    blob_kwargs = dict(prefix=path,
+                       delimiter=delimiter,
+                       fields='items(name,generation)')
+    # deal with different call sigantures
+    if version.parse(storage.__version__) >= version.parse('1.17'):
+        blobs = client.list_blobs(bucket, **blob_kwargs)
+    else:
+        blobs = bucket.list_blobs(**blob_kwargs)
+
+    for b in blobs:
+        b.delete()
+
+    return dt.now() - start_time
 
 
 def replicate_directory_structure_on_gcs(src, dst, client):
@@ -130,6 +207,8 @@ def cp_gcs(src, dest, cp_flags=[]):
     GCLOUD_DEFAULT_TOKEN_FILE env var.
     This is done automatically for rhg-data.json when using the get_worker
     wrapper.
+
+    TODO: make this use the API rather than calling the gsutil command line
 
     Parameters
     ----------
@@ -199,6 +278,8 @@ def sync_gcs(src, dest, sync_flags=['r', 'd']):
     to the authentication json file to the GCLOUD_DEFAULT_TOKEN_FILE env var.
     This is done automatically for rhg-data.json when using the get_worker
     wrapper.
+
+    TODO: make this use the API rather than calling the gsutil command line
 
     Parameters
     ----------
