@@ -8,6 +8,7 @@ import yaml as yml
 import traceback as tb
 import os
 import numpy as np
+from collections import Sequence
 
 
 def traceback(ftr):
@@ -44,6 +45,8 @@ def get_cluster(
         env_items=None,
         scaling_factor=1,
         dask_config_dict={},
+        deploy_mode='local',
+        scheduler_timeout='86400',
         template_path='~/worker-template.yml',
         **kwargs):
     """
@@ -87,7 +90,7 @@ def get_cluster(
                 'name': 'GOOGLE_APPLICATION_CREDENTIALS',
                 'value': '/opt/gcsfuse_tokens/rhg-data.json'}])
 
-    scaling_factor: float, optional
+    scaling_factor : float, optional
         scale the worker memory & CPU size using a constant multiplier of the
         specified worker. No constraints in terms of performance or cluster
         size are enforced - if you request too little the dask worker will not
@@ -95,10 +98,20 @@ def get_cluster(
         or ``InsufficientCPU`` error on the google cloud Kubernetes console.
         Recommended scaling factors given our default ``~/worker-template.yml``
         specs are [0.5, 1, 2, 4].
-    dask_config_dict: dict, optional
+    dask_config_dict : dict, optional
         Dask config parameters to modify from their defaults. A '.' is used
         to access progressive levels of the yaml structure. For instance, the
         dict could look like {'distributed.worker.profile.interval':'100ms'}
+    deploy_mode : str, optional
+        Where to deploy the scheduler (on the same pod or a different pod)
+    scheduler_timeout : str, optional
+        Number of seconds without communication with the client before the 
+        remote scheduler shuts down (ignored if ``deploy_mode=='local'``).
+        I think this is supposed to only occur if the Client is totally 
+        disconnected, but right now it occurs if there is no ACTIVE comms (e.g.
+        if you simply don't request a future for this amount of time, your 
+        scheduler will shut down and you will lose your workers). Set to a high
+        number to avoid this situation.
     template_path : str, optional
         Path to worker template file. Default ``~/worker-template.yml``.
 
@@ -148,38 +161,39 @@ def get_cluster(
             'value': extra_conda_packages})
 
     if cred_path is not None:
-        # can remove this first env var once
-        # worker docker image is updated to point to
-        # 'GOOGLE_APPLCIATION_CREDENTIALS'
-        container['env'].append({
-            'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
-            'value': cred_path})
         container['env'].append({
             'name': 'GOOGLE_APPLICATION_CREDENTIALS',
             'value': cred_path})
 
     elif cred_name is not None:
-        # can remove this first env var once
-        # worker docker image is updated to point to
-        # 'GOOGLE_APPLCIATION_CREDENTIALS'
-        container['env'].append({
-            'name': 'GCLOUD_DEFAULT_TOKEN_FILE',
-            'value': '/opt/gcsfuse_tokens/{}.json'.format(cred_name)})
         container['env'].append({
             'name': 'GOOGLE_APPLICATION_CREDENTIALS',
             'value': '/opt/gcsfuse_tokens/{}.json'.format(cred_name)})
 
     if env_items is not None:
-        container['env'] = container['env'] + env_items
+        if isinstance(env_items, dict):
+            [container['env'].append(
+            {
+                'name': k,
+                'value': v
+            }) for k,v in env_items.values()]
+        # allow deprecated passing of list of name/value pairs
+        elif isintance(env_items, Sequence):
+            warnings.warn('Passing of list of name/value pairs deprecated. '
+                         'Please pass a dictionary instead.')
+            container['env'] = container['env'] + env_items
+        else:
+            raise ValueError('Expected `env_items` of type dict or sequence.')
 
     # adjust worker creation args
     args = container['args']
 
     # set nthreads if provided
     nthreads_ix = args.index('--nthreads') + 1
-
     if nthreads is not None:
         args[nthreads_ix] = str(nthreads)
+    nthreads = int(args[nthreads_ix])
+    
 
     # then in resources
     resources = container['resources']
@@ -197,7 +211,18 @@ def get_cluster(
         cpus = float(limits['cpu'])
         cpu_request = float(requests['cpu'])
         assert cpus == cpu_request, msg.format('cpu')
-
+        
+    # now properly set the threads accessible by multi-threaded libraries
+    # so that there's no competition between dask threads and the threads of
+    # these libraries
+    cpus_rounded = np.round(cpus)
+    lib_threads = int(cpus_rounded/nthreads)
+    for lib in ['OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS']:
+        container['env'].append(
+        {
+            'name': lib,
+            'value': lib_threads
+        })
     format_request = lambda x: '{:04.2f}'.format(np.floor(x * 100) / 100)
 
     # set memory-limit if provided
@@ -215,7 +240,14 @@ def get_cluster(
     requests['cpu'] = format_request(float(cpus) * scaling_factor)
 
     # start cluster and client and return
-    cluster = KubeCluster.from_dict(template)
+    # need more time to connect to remote scheduler
+    if deploy_mode=='remote':
+        dask.config.set({'distributed.comm.timeouts.connect': '60s'})
+    cluster = KubeCluster.from_dict(
+        template, 
+        deploy_mode=deploy_mode,
+        scheduler_timeout=scheduler_timeout
+    )
 
     client = dd.Client(cluster)
 

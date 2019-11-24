@@ -4,6 +4,13 @@ History
 
 .. current developments
 
+v0.2.1
+------
+* Add remote scheduler deployment (part of dask_kubernetes 0.10)
+* Remove extraneous `GCSFUSE_TOKENS` env var no longer used in new worker images
+* Set library thread limits based on how many cpus are available for a single dask thread
+* Change formatting of the extra `env_items` passed to `get_cluster` to be a list rather than a list of dict-like name/value pairs
+
 v0.2.0
 ------
 
