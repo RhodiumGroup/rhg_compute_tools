@@ -44,7 +44,7 @@ def get_cluster(
     scaling_factor=1,
     dask_config_dict={},
     deploy_mode="local",
-    scheduler_timeout="86400",
+    idle_timeout=None,
     template_path="~/worker-template.yml",
     **kwargs
 ):
@@ -103,14 +103,10 @@ def get_cluster(
         dict could look like {'distributed.worker.profile.interval':'100ms'}
     deploy_mode : str, optional
         Where to deploy the scheduler (on the same pod or a different pod)
-    scheduler_timeout : str, optional
-        Number of seconds without communication with the client before the 
+    idle_timeout : str, optional
+        Number of seconds without active ommunication with the client before the 
         remote scheduler shuts down (ignored if ``deploy_mode=='local'``).
-        I think this is supposed to only occur if the Client is totally 
-        disconnected, but right now it occurs if there is no ACTIVE comms (e.g.
-        if you simply don't request a future for this amount of time, your 
-        scheduler will shut down and you will lose your workers). Set to a high
-        number to avoid this situation.
+        Default is to not shut down for this reason.
     template_path : str, optional
         Path to worker template file. Default ``~/worker-template.yml``.
 
@@ -237,9 +233,10 @@ def get_cluster(
     # start cluster and client and return
     # need more time to connect to remote scheduler
     if deploy_mode == "remote":
-        dask.config.set({"distributed.comm.timeouts.connect": "60s"})
+        dask.config.set({"distributed.comm.timeouts.connect": "60s",
+                         "kubernetes.idle-timeout": idle_timeout})
     cluster = KubeCluster.from_dict(
-        template, deploy_mode=deploy_mode, scheduler_timeout=scheduler_timeout
+        template, deploy_mode=deploy_mode, idle_timeout=None
     )
 
     client = dd.Client(cluster)
