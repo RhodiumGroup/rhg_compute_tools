@@ -233,8 +233,7 @@ def get_cluster(
     # start cluster and client and return
     # need more time to connect to remote scheduler
     if deploy_mode == "remote":
-        dask.config.set({"distributed.comm.timeouts.connect": "60s",
-                         "kubernetes.idle-timeout": idle_timeout})
+        dask.config.set({"kubernetes.idle-timeout": idle_timeout})
     cluster = KubeCluster.from_dict(
         template, deploy_mode=deploy_mode, idle_timeout=None
     )
