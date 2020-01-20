@@ -7,6 +7,7 @@ import dask.distributed as dd
 import yaml as yml
 import traceback as tb
 import os
+import socket
 import numpy as np
 
 
@@ -45,6 +46,8 @@ def get_cluster(
         scaling_factor=1,
         dask_config_dict={},
         template_path='~/worker-template.yml',
+        extra_worker_labels=None,
+        extra_pod_tolerations=None,
         **kwargs):
     """
     Start dask.kubernetes cluster and dask.distributed client
@@ -98,9 +101,22 @@ def get_cluster(
     dask_config_dict: dict, optional
         Dask config parameters to modify from their defaults. A '.' is used
         to access progressive levels of the yaml structure. For instance, the
-        dict could look like {'distributed.worker.profile.interval':'100ms'}
+        dict could look like ``{'distributed.worker.profile.interval': '100ms'}``
     template_path : str, optional
         Path to worker template file. Default ``~/worker-template.yml``.
+    extra_worker_labels : dict, optional
+        Dictionary of kubernetes labels to apply to pods. None (default) results
+        in no additional labels besides those in the template, as well as
+        ``jupyter_user``, which is inferred from the ``JUPYTERHUB_USER``, or, if
+        not set, the server's hostname.
+    extra_pod_tolerations : list of dict, optional
+        List of pod toleration dictionaries. For example, to match a node pool
+        NoSchedule toleration, you might provide:
+        ```python
+        extra_pod_tolerations=[
+            {"effect": "NoSchedule", "key": "k8s.dask.org_dedicated", "operator": "Equal", "value": "worker-highcpu"},
+            {"effect": "NoSchedule", "key": "k8s.dask.org/dedicated", "operator": "Equal", "value": "worker-highcpu"}]
+        ```
 
     Returns
     -------
@@ -130,6 +146,26 @@ def get_cluster(
 
     with open(template_path, 'r') as f:
         template = yml.load(f, Loader=yml.SafeLoader)
+    
+    # update labels with default and user-provided labels
+    labels = template.get('metadata', {}).get('labels', {})
+    
+    if extra_worker_labels is not None:
+        labels.update(extra_worker_labels)
+
+    labels.update({
+        'jupyter_user': os.environ.get('JUPYTERHUB_USER', socket.gethostname())})
+    
+    if not 'metadata' in template:
+        template['metadata'] = {}
+        
+    template['metadata']['labels'] = labels
+    
+    if 'tolerations' not in template['spec']:
+        template['spec']['tolerations'] = []
+    
+    if extra_pod_tolerations is not None:
+        template['spec']['tolerations'].extend(extra_pod_tolerations)
 
     container = template['spec']['containers'][0]
 
