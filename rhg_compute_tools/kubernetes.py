@@ -148,16 +148,19 @@ def get_cluster(
         template = yml.load(f, Loader=yml.SafeLoader)
     
     # update labels with default and user-provided labels
-    labels = template.get('metadata', {}).get('labels', {})
+    if ('metadata' not in template) or (template.get('metadata', {}) is None):
+        template['metadata'] = {}
+
+    if ('labels' not in template['metadata']) or (template['metadata']['labels'] is None):
+        template['metadata']['labels'] = {}
+
+    labels = template['metadata']['labels']
     
     if extra_worker_labels is not None:
         labels.update(extra_worker_labels)
 
     labels.update({
         'jupyter_user': os.environ.get('JUPYTERHUB_USER', socket.gethostname())})
-    
-    if not 'metadata' in template:
-        template['metadata'] = {}
         
     template['metadata']['labels'] = labels
     
