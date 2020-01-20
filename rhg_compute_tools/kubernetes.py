@@ -112,11 +112,12 @@ def get_cluster(
     extra_pod_tolerations : list of dict, optional
         List of pod toleration dictionaries. For example, to match a node pool
         NoSchedule toleration, you might provide:
-        ```python
-        extra_pod_tolerations=[
-            {"effect": "NoSchedule", "key": "k8s.dask.org_dedicated", "operator": "Equal", "value": "worker-highcpu"},
-            {"effect": "NoSchedule", "key": "k8s.dask.org/dedicated", "operator": "Equal", "value": "worker-highcpu"}]
-        ```
+        
+        .. code-block:: python
+
+            extra_pod_tolerations=[
+                {"effect": "NoSchedule", "key": "k8s.dask.org_dedicated", "operator": "Equal", "value": "worker-highcpu"},
+                {"effect": "NoSchedule", "key": "k8s.dask.org/dedicated", "operator": "Equal", "value": "worker-highcpu"}]
 
     Returns
     -------
