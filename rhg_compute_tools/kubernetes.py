@@ -48,6 +48,7 @@ def get_cluster(
         template_path='~/worker-template.yml',
         extra_worker_labels=None,
         extra_pod_tolerations=None,
+        keep_default_tolerations=True,
         **kwargs):
     """
     Start dask.kubernetes cluster and dask.distributed client
@@ -119,6 +120,10 @@ def get_cluster(
                 {"effect": "NoSchedule", "key": "k8s.dask.org_dedicated", "operator": "Equal", "value": "worker-highcpu"},
                 {"effect": "NoSchedule", "key": "k8s.dask.org/dedicated", "operator": "Equal", "value": "worker-highcpu"}]
 
+    keep_default_tolerations : bool, optional
+        Whether to append (default) or replace the default tolerations. Ignored if
+        ``extra_pod_tolerations`` is ``None`` or has length 0.
+
     Returns
     -------
     client : object
@@ -168,8 +173,11 @@ def get_cluster(
     if 'tolerations' not in template['spec']:
         template['spec']['tolerations'] = []
     
-    if extra_pod_tolerations is not None:
-        template['spec']['tolerations'].extend(extra_pod_tolerations)
+    if (extra_pod_tolerations is not None) and (len(extra_pod_tolerations) > 0):
+        if keep_default_tolerations:
+            template['spec']['tolerations'].extend(extra_pod_tolerations)
+        else:
+            template['spec']['tolerations'] = extra_pod_tolerations
 
     container = template['spec']['containers'][0]
 
