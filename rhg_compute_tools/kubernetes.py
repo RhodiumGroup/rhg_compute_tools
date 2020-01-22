@@ -175,8 +175,10 @@ def get_cluster(
     
     if (extra_pod_tolerations is not None) and (len(extra_pod_tolerations) > 0):
         if keep_default_tolerations:
+            print("Another shrubbery!!!")
             template['spec']['tolerations'].extend(extra_pod_tolerations)
         else:
+            print("Help help I'm being replaced!")
             template['spec']['tolerations'] = extra_pod_tolerations
 
     container = template['spec']['containers'][0]
