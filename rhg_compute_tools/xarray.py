@@ -326,3 +326,239 @@ def dataset_from_delayed(futures, dim=None, client=None):
     ds = xr.concat(datasets, dim=dim)
 
     return ds
+
+import numpy as np
+import xarray as xr
+import functools
+
+
+def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
+    '''
+    Wrapper on np.random.choice, but along a single dimension within a larger array
+    
+    Parameters
+    ----------
+    arr : np.array
+        Array with more than one dimension. Choices will be drawn from along the
+        ``axis`` dimension.
+    axis : integer, optional
+        Dimension along which to draw samples
+    replace : bool, optional
+        Whether to sample with replacement. Passed to :py:func:`np.random.choice`.
+        Default 1.
+    nchoices : int, optional
+        Number of samples to draw. Must be less than or equal to the number of
+        valid options if replace is False. Default 1.
+    p : np.array
+        Array with the same shape as ``arr`` with weights for each choice. Each
+        dimension is sampled independently, so weights will be normalized to 1
+        along the ``axis`` dimension.
+    
+    Returns
+    -------
+    sampled : np.array
+        Array with the same shape as ``arr`` but with length ``nchoices`` along axis
+        ``axis`` and with values chosen from the values of ``arr`` along dimension
+        ``axis`` with weights ``p``.
+    
+    Examples
+    --------
+    
+    Let's say we have an array with NaNs in it:
+    
+    .. code-block:: python
+    
+        >>> arr = np.arange(40).reshape(4, 2, 5).astype(float)
+        >>> for i in range(4):
+        ...     arr[i, :, i+1:] = np.nan
+        >>> arr
+        array([[[ 0., nan, nan, nan, nan],
+                [ 5., nan, nan, nan, nan]],
+
+               [[10., 11., nan, nan, nan],
+                [15., 16., nan, nan, nan]],
+
+               [[20., 21., 22., nan, nan],
+                [25., 26., 27., nan, nan]],
+
+               [[30., 31., 32., 33., nan],
+                [35., 36., 37., 38., nan]]])
+
+                
+    We can set weights such that we only select from non-nan values
+    
+    .. code-block:: python
+
+        >>> p = (~np.isnan(arr))
+        >>> p = p / p.sum(axis=2).reshape(4, 2, 1)
+    
+    Now, sampling from this along the second dimension will draw from
+    these values:
+
+    .. code-block:: python
+
+        >>> np.random.seed(1)
+        >>> choose_along_axis(arr, 2, p=p, nchoices=10)
+        array([[[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+                [ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.]],
+
+               [[11., 11., 10., 11., 11., 11., 10., 10., 10., 11.],
+                [15., 15., 16., 16., 16., 15., 16., 16., 15., 16.]],
+
+               [[22., 22., 20., 22., 20., 21., 22., 20., 20., 20.],
+                [25., 27., 25., 25., 26., 25., 26., 25., 26., 27.]],
+
+               [[30., 31., 32., 31., 30., 32., 32., 32., 33., 32.],
+                [38., 35., 35., 38., 36., 35., 38., 36., 38., 37.]]])
+
+    See Also
+    --------
+    :py:func:`np.random.choice` : 1-d version of this function
+    '''
+    if p is None:
+        p = np.ones_like(arr).astype(float) / arr.shape[axis]
+
+    axis = axis % len(arr.shape)
+    new_shape = tuple(list(arr.shape[:axis]) + [nchoices] + list(arr.shape[axis+1:]))
+    result = np.ndarray(shape=new_shape, dtype=arr.dtype)
+
+    for ind in np.ndindex(tuple([l for i, l in enumerate(arr.shape) if i != axis])):
+        indexer = tuple(list(ind[:axis]) + [slice(None)] + list(ind[axis:]))
+        result[indexer] = np.random.choice(
+            arr[indexer], size=nchoices, replace=replace, p=p[indexer],
+        )
+        
+    return result
+
+
+def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
+    '''
+    Sample values from a DataArray along a dimension
+    
+    Wraps :py:func:`np.random.choice` to sample a different random index
+    (or set of indices) from along dimension ``dim`` for each combination of
+    elements along the other dimensions. This is very different from block
+    resampling - to block resample along a dimension simply choose a set
+    of indices and draw these from the array using :py:meth:`xr.DataArray.sel`.
+
+    Parameters
+    ----------
+    da : xr.DataArray
+        DataArray from which to sample values.
+    dim: str
+        Dimension along which to sample. Sampling will draw from elements along
+        this dimension for all combinations of other dimensions.
+    samples : int, optional
+        Number of samples to take from the dimension ``dim``. If greater than 1,
+        ``expand`` is ignored (and set to True).
+    expand : bool, optional
+        Whether to expand the array along the sampled dimension.
+    new_dim_name : str, optoinal
+        Name for the new dimension. If not provided, will use ``dim``.
+        
+    Returns
+    -------
+    sampled : xr.DataArray
+        DataArray with sampled values chosen along dimension ``dim``
+
+    Examples
+    --------
+    
+    .. code-block:: python
+    
+        >>> da = xr.DataArray(
+        ...     np.arange(40).reshape(4, 2, 5),
+        ...     dims=['x', 'y', 'z'],
+        ...     coords=[np.arange(4), np.arange(2), np.arange(5)],
+        ... )
+        
+        >>> da
+        <xarray.DataArray (x: 4, y: 2, z: 5)>
+        array([[[ 0,  1,  2,  3,  4],
+                [ 5,  6,  7,  8,  9]],
+
+               [[10, 11, 12, 13, 14],
+                [15, 16, 17, 18, 19]],
+
+               [[20, 21, 22, 23, 24],
+                [25, 26, 27, 28, 29]],
+
+               [[30, 31, 32, 33, 34],
+                [35, 36, 37, 38, 39]]])
+        Coordinates:
+          * x        (x) int64 0 1 2 3
+          * y        (y) int64 0 1
+          * z        (z) int64 0 1 2 3 4
+
+    We can take a random value along the ``'z'`` dimension:
+
+    .. code-block:: python
+
+        >>> np.random.seed(1)
+        >>> choose_along_dim(da, 'z')
+        <xarray.DataArray (x: 4, y: 2)>
+        array([[ 2,  8],
+               [10, 16],
+               [20, 25],
+               [30, 36]])
+        Coordinates:
+          * x        (x) int64 0 1 2 3
+          * y        (y) int64 0 1
+
+
+    If you provide a ``sample`` argument greater than one (or
+    set expand=True) the array will be expanded to a new
+    dimension:
+    
+    .. code-block:: python
+
+        >>> np.random.seed(1)
+        >>> choose_along_dim(da, 'z', samples=3)
+        <xarray.DataArray (x: 4, y: 2, z: 3)>
+        array([[[ 2,  3,  0],
+                [ 6,  5,  5]],
+
+               [[10, 11, 11],
+                [17, 17, 18]],
+
+               [[21, 24, 20],
+                [28, 27, 27]],
+
+               [[30, 30, 34],
+                [39, 36, 38]]])
+        Coordinates:
+          * x        (x) int64 0 1 2 3
+          * y        (y) int64 0 1
+          * z        (z) int64 0 1 2
+    '''
+    sampled = choose_along_axis(da.values, axis=da.get_axis_num(dim), nchoices=samples)
+    
+    if samples > 1:
+        expand=True
+
+    if not expand:
+        sampled = np.take(sampled, 0, axis=da.get_axis_num(dim))
+        return xr.DataArray(
+            sampled,
+            dims=[d for d in da.dims if d != dim],
+            coords=[da.coords[d] for d in da.dims if d != dim],
+        )
+
+    else:
+        if new_dim_name is None:
+            new_dim_name = dim
+        
+        return xr.DataArray(
+            sampled,
+            dims=[d if d != dim else new_dim_name for d in da.dims],
+            coords=[da.coords[d] if d != dim else np.arange(samples) for d in da.dims],
+        )
+
+@xr.register_dataarray_accessor('random')
+class random:
+    def __init__(self, xarray_obj):
+        self._xarray_obj = xarray_obj
+    
+    @functools.wraps(choice_along_dim)
+    def choice(self, *args, **kwargs):
+        return choose_along_dim(self._xarray_obj, *args, **kwargs)
