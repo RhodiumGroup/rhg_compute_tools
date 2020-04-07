@@ -33,17 +33,16 @@ def authenticated_client(credentials=None, **client_kwargs):
     if credentials is None:
         client = storage.Client()
     else:
-        creds = service_account.Credentials.from_service_account_file(
-            str(credentials)
-        )
+        creds = service_account.Credentials.from_service_account_file(str(credentials))
         client = storage.Client(credentials=creds, **client_kwargs)
 
     return client
 
 
-def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False,
-               **client_kwargs):
-    '''Return a bucket object from Rhg's GCS system.
+def get_bucket(
+    credentials=None, bucket_name="rhg-data", return_client=False, **client_kwargs
+):
+    """Return a bucket object from Rhg's GCS system.
 
     Parameters
     ----------
@@ -64,9 +63,8 @@ def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False,
     Returns
     -------
     bucket : :py:class:`google.cloud.storage.bucket.Bucket`
-    '''
-    client = authenticated_client(credentials=credentials,
-                                  **client_kwargs)
+    """
+    client = authenticated_client(credentials=credentials, **client_kwargs)
     result = client.get_bucket(bucket_name)
 
     if return_client:
@@ -75,81 +73,66 @@ def get_bucket(credentials=None, bucket_name='rhg-data', return_client=False,
     return result
 
 
-def _remove_prefix(text, prefix='/gcs/rhg-data/'):
-    return text[text.startswith(prefix) and len(prefix):]
+def _remove_prefix(text, prefix="/gcs/rhg-data/"):
+    return text[text.startswith(prefix) and len(prefix) :]
 
 
 def _get_path_types(src, dest):
     src_gs = src
     dest_gs = dest
     dest_gcs = dest
-    if src_gs.startswith('/gcs/'):
-        src_gs = src.replace('/gcs/', 'gs://')
-    if dest_gs.startswith('/gcs/'):
-        dest_gs = dest.replace('/gcs/', 'gs://')
-    if dest_gcs.startswith('gs://'):
-        dest_gcs = dest.replace('gs://', '/gcs/')
+    if src_gs.startswith("/gcs/"):
+        src_gs = src.replace("/gcs/", "gs://")
+    if dest_gs.startswith("/gcs/"):
+        dest_gs = dest.replace("/gcs/", "gs://")
+    if dest_gcs.startswith("gs://"):
+        dest_gcs = dest.replace("gs://", "/gcs/")
 
     return src_gs, dest_gs, dest_gcs
 
 
-def rm(path, credentials=None,
-       recursive=False, **bucket_kwargs):
-    '''Remove a file and/or directory from gcs. Must have already
-    authenticated to use. Need to pass a cred_path or have the appropriate
-    environment variable set. A couple of gotchas:
-    - If you don't end a path to a directory with a '/', it will not remove
-    anything.
-    - If you don't pass ``recursive=True``, yet do pass a directory path
-    (with appropriate trailing '/'), it will delete all of the files
-    immediately within that directory, but not any files in nested
-    directories
+def rm(path, cp_flags=[]):
+    """Remove a file or recursively remove a directory from local
+    path to GCS or vice versa. Must have already authenticated to use.
+    Notebook servers are automatically authenticated, but workers
+    need to pass the path to the authentication json file to the
+    GOOGLE_APPLICATION_CREDENTIALS env var.
+    This is done automatically for rhg-data.json when using the get_worker
+    wrapper.
 
     Parameters
     ----------
-    path : str
-        Path to file/directory you want to remove
-    credentials : str, optional
-        Only optional if you have already passed the path to your credentials
-        via the ``GCLOUD_DEFAULT_TOKEN_FILE`` env var.
-    recursive : bool, optional
-        Whether to continue to walk the directory tree to remove files in
-        nested directories
-    bucket_kwargs :
-        kwargs to pass when instantiating a
-        :py:class:`google.cloud.storage.Bucket` instance
+    path : str or :class:`pathlib.Path`
+        The path to the source and destination file or directory.
+        Either the `/gcs` or `gs:/` prefix will work.
+    cp_flags : list of str, optional
+        String of flags to add to the gsutil cp command. e.g.
+        `cp_flags=['r']` will run the command `gsutil -m rm -r...`
+        (recursive remove)
 
     Returns
     -------
+    str
+        stdout from gsutil call
+    str
+        stderr from gsutil call
     :py:class:`datetime.timedelta`
         Time it took to copy file(s).
-    '''
-    from packaging import version
+    """
 
-    start_time = dt.now()
-    path = _remove_prefix(path)
+    st_time = dt.now()
 
-    bucket, client = get_bucket(credentials, return_client=True,
-                                **bucket_kwargs)
+    path = str(path).replace("/gcs/", "gs://")
 
-    if recursive:
-        delimiter = None
-    else:
-        delimiter = '/'
+    cmd = "gsutil -m rm " + " ".join(["-" + f for f in cp_flags]) + f" {path}"
 
-    blob_kwargs = dict(prefix=path,
-                       delimiter=delimiter,
-                       fields='items(name,generation)')
-    # deal with different call sigantures
-    if version.parse(storage.__version__) >= version.parse('1.17'):
-        blobs = client.list_blobs(bucket, **blob_kwargs)
-    else:
-        blobs = bucket.list_blobs(**blob_kwargs)
+    cmd = shlex.split(cmd)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
 
-    for b in blobs:
-        b.delete()
+    end_time = dt.now()
 
-    return dt.now() - start_time
+    return stdout, stderr, end_time - st_time
 
 
 def replicate_directory_structure_on_gcs(src, dst, client):
@@ -168,15 +151,15 @@ def replicate_directory_structure_on_gcs(src, dst, client):
     client : google.cloud.storage.client.Client
         An authenticated :py:class:`google.cloud.storage.client.Client` object.
     """
-    if dst.startswith('gs://'):
+    if dst.startswith("gs://"):
         dst = dst[5:]
-    elif dst.startswith('gcs://'):
+    elif dst.startswith("gcs://"):
         dst = dst[6:]
     else:
-        raise ValueError('dst must begin with `gs://` or `gcs://`')
+        raise ValueError("dst must begin with `gs://` or `gcs://`")
 
-    bucket_name = dst.split('/')[0]
-    blob_path = '/'.join(dst.split('/')[1:])
+    bucket_name = dst.split("/")[0]
+    blob_path = "/".join(dst.split("/")[1:])
 
     bucket = client.get_bucket(bucket_name)
 
@@ -184,31 +167,29 @@ def replicate_directory_structure_on_gcs(src, dst, client):
         dest_path = os.path.join(blob_path, os.path.relpath(d, src))
 
         # make sure there is exactly one trailing slash:
-        dest_path = dest_path.rstrip('/') + '/'
+        dest_path = dest_path.rstrip("/") + "/"
 
         # ignore "." directory
-        if dest_path == './':
+        if dest_path == "./":
             continue
 
         blob = bucket.blob(dest_path)
-        blob.upload_from_string('')
+        blob.upload_from_string("")
 
 
 def cp_to_gcs(*args, **kwargs):
-    '''Deprecated. Use `cp_gcs`.'''
+    """Deprecated. Use `cp_gcs`."""
     return cp_gcs(*args, **kwargs)
 
 
 def cp_gcs(src, dest, cp_flags=[]):
-    '''Copy a file or recursively copy a directory from local
+    """Copy a file or recursively copy a directory from local
     path to GCS or vice versa. Must have already authenticated to use.
     Notebook servers are automatically authenticated, but workers
     need to pass the path to the authentication json file to the
-    GCLOUD_DEFAULT_TOKEN_FILE env var.
+    GOOGLE_APPLICATION_CREDENTIALS env var.
     This is done automatically for rhg-data.json when using the get_worker
     wrapper.
-
-    TODO: make this use the API rather than calling the gsutil command line
 
     Parameters
     ----------
@@ -228,7 +209,7 @@ def cp_gcs(src, dest, cp_flags=[]):
         stderr from gsutil call
     :py:class:`datetime.timedelta`
         Time it took to copy file(s).
-    '''
+    """
 
     st_time = dt.now()
 
@@ -245,17 +226,17 @@ def cp_gcs(src, dest, cp_flags=[]):
         dest_base = dest_gcs
 
     cmd = (
-        'gsutil -m cp '
-        + ' '.join(['-' + f for f in cp_flags])
-        + ' {} {}'.format(src_gs, dest_gs))
+        "gsutil -m cp "
+        + " ".join(["-" + f for f in cp_flags])
+        + " {} {}".format(src_gs, dest_gs)
+    )
 
     cmd = shlex.split(cmd)
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
 
     # need to add directories if you were recursively copying a directory
-    if isdir(src) and dest_gcs.startswith('/gcs/'):
+    if isdir(src) and dest_gcs.startswith("/gcs/"):
         # now make directory blobs on gcs so that gcsfuse recognizes it
         dirs_to_make = [x[0].replace(src, dest_base) for x in os.walk(src)]
         for d in dirs_to_make:
@@ -267,19 +248,17 @@ def cp_gcs(src, dest, cp_flags=[]):
 
 
 def sync_to_gcs(*args, **kwargs):
-    '''Deprecated. Use sync_gcs'''
+    """Deprecated. Use sync_gcs"""
     return sync_gcs(*args, **kwargs)
 
 
-def sync_gcs(src, dest, sync_flags=['r', 'd']):
-    '''Sync a directory from local to GCS or vice versa. Uses `gsutil rsync`.
+def sync_gcs(src, dest, sync_flags=["r", "d"]):
+    """Sync a directory from local to GCS or vice versa. Uses `gsutil rsync`.
     Must have already authenticated to use. Notebook servers
     are automatically authenticated, but workers need to pass the path
     to the authentication json file to the GCLOUD_DEFAULT_TOKEN_FILE env var.
     This is done automatically for rhg-data.json when using the get_worker
     wrapper.
-
-    TODO: make this use the API rather than calling the gsutil command line
 
     Parameters
     ----------
@@ -300,13 +279,13 @@ def sync_gcs(src, dest, sync_flags=['r', 'd']):
         stderr from gsutil call
     :py:class:`datetime.timedelta`
         Time it took to copy file(s).
-    '''
+    """
 
     st_time = dt.now()
 
     # remove trailing /'s
-    src = src.rstrip('/')
-    dest = dest.rstrip('/')
+    src = src.rstrip("/")
+    dest = dest.rstrip("/")
 
     # make sure we're using URL
     # if /gcs or gs:/ are not in src or not in dest
@@ -314,18 +293,18 @@ def sync_gcs(src, dest, sync_flags=['r', 'd']):
     src_gs, dest_gs, dest_gcs = _get_path_types(src, dest)
 
     cmd = (
-        'gsutil -m rsync '
-        + ' '.join(['-' + f for f in sync_flags])
-        + ' {} {}'.format(src_gs, dest_gs))
+        "gsutil -m rsync "
+        + " ".join(["-" + f for f in sync_flags])
+        + " {} {}".format(src_gs, dest_gs)
+    )
 
     cmd = shlex.split(cmd)
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
 
     # need to add directories if you were recursively copying a directory TO
     # gcs now make directory blobs on gcs so that gcsfuse recognizes it
-    if dest_gcs.startswith('/gcs/'):
+    if dest_gcs.startswith("/gcs/"):
         dirs_to_make = [x[0].replace(src, dest_gcs) for x in os.walk(src)]
         for d in dirs_to_make:
             os.makedirs(d, exist_ok=True)
