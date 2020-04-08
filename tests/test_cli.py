@@ -73,8 +73,10 @@ def test_repdirstruc_nocredfile(credflag,
         ['gcs', 'repdirstruc'] + credargs + [src_path, dst_path],
     )
 
-    expected = 'Usage: rctools-cli gcs repdirstruc [OPTIONS] SRC DST\nTry' \
-               ' "rctools-cli gcs repdirstruc -h" for help.\n\nError: ' \
-               'Invalid value for "-c" / "--credentials": Path ' \
-               '"_foobar.json" does not exist.\n'
-    assert result.output == expected
+    expected = (
+        "Usage: rctools-cli gcs repdirstruc [OPTIONS] SRC DST\nTry"
+        " 'rctools-cli gcs repdirstruc -h' for help.\n\nError: "
+        "Invalid value for '-c' / '--credentials': Path "
+        "'_foobar.json' does not exist.\n"
+    )
+    assert result.output.replace('"', "'") == expected.replace('"', "'")
