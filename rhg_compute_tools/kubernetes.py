@@ -7,6 +7,7 @@ import dask.distributed as dd
 import yaml as yml
 import traceback as tb
 import os
+import socket
 import numpy as np
 from collections import Sequence
 
@@ -46,6 +47,9 @@ def get_cluster(
     deploy_mode="local",
     idle_timeout=None,
     template_path="~/worker-template.yml",
+    extra_worker_labels=None,
+    extra_pod_tolerations=None,
+    keep_default_tolerations=True,
     **kwargs
 ):
     """
@@ -100,7 +104,7 @@ def get_cluster(
     dask_config_dict : dict, optional
         Dask config parameters to modify from their defaults. A '.' is used
         to access progressive levels of the yaml structure. For instance, the
-        dict could look like {'distributed.worker.profile.interval':'100ms'}
+        dict could look like ``{'distributed.worker.profile.interval': '100ms'}``
     deploy_mode : str, optional
         Where to deploy the scheduler (on the same pod or a different pod)
     idle_timeout : str, optional
@@ -109,6 +113,24 @@ def get_cluster(
         Default is to not shut down for this reason.
     template_path : str, optional
         Path to worker template file. Default ``~/worker-template.yml``.
+    extra_worker_labels : dict, optional
+        Dictionary of kubernetes labels to apply to pods. None (default) results
+        in no additional labels besides those in the template, as well as
+        ``jupyter_user``, which is inferred from the ``JUPYTERHUB_USER``, or, if
+        not set, the server's hostname.
+    extra_pod_tolerations : list of dict, optional
+        List of pod toleration dictionaries. For example, to match a node pool
+        NoSchedule toleration, you might provide:
+        
+        .. code-block:: python
+
+            extra_pod_tolerations=[
+                {"effect": "NoSchedule", "key": "k8s.dask.org_dedicated", "operator": "Equal", "value": "worker-highcpu"},
+                {"effect": "NoSchedule", "key": "k8s.dask.org/dedicated", "operator": "Equal", "value": "worker-highcpu"}]
+
+    keep_default_tolerations : bool, optional
+        Whether to append (default) or replace the default tolerations. Ignored if
+        ``extra_pod_tolerations`` is ``None`` or has length 0.
 
     Returns
     -------
@@ -138,6 +160,32 @@ def get_cluster(
 
     with open(template_path, "r") as f:
         template = yml.load(f, Loader=yml.SafeLoader)
+    
+    # update labels with default and user-provided labels
+    if ('metadata' not in template) or (template.get('metadata', {}) is None):
+        template['metadata'] = {}
+
+    if ('labels' not in template['metadata']) or (template['metadata']['labels'] is None):
+        template['metadata']['labels'] = {}
+
+    labels = template['metadata']['labels']
+    
+    if extra_worker_labels is not None:
+        labels.update(extra_worker_labels)
+
+    labels.update({
+        'jupyter_user': os.environ.get('JUPYTERHUB_USER', socket.gethostname())})
+        
+    template['metadata']['labels'] = labels
+    
+    if 'tolerations' not in template['spec']:
+        template['spec']['tolerations'] = []
+    
+    if (extra_pod_tolerations is not None) and (len(extra_pod_tolerations) > 0):
+        if keep_default_tolerations:
+            template['spec']['tolerations'].extend(extra_pod_tolerations)
+        else:
+            template['spec']['tolerations'] = extra_pod_tolerations
 
     container = template["spec"]["containers"][0]
 
