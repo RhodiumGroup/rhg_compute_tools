@@ -66,3 +66,6 @@ target/
 .pytest_cache
 # Rever
 rever/
+
+# jupyter
+*.ipynb_checkpoints
