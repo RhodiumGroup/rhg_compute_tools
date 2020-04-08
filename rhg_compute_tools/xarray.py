@@ -371,16 +371,13 @@ def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
         >>> arr = np.arange(40).reshape(4, 2, 5).astype(float)
         >>> for i in range(4):
         ...     arr[i, :, i+1:] = np.nan
-        >>> arr
+        >>> arr  # doctest: +NORMALIZE_WHITESPACE
         array([[[ 0., nan, nan, nan, nan],
                 [ 5., nan, nan, nan, nan]],
-
                [[10., 11., nan, nan, nan],
                 [15., 16., nan, nan, nan]],
-
                [[20., 21., 22., nan, nan],
                 [25., 26., 27., nan, nan]],
-
                [[30., 31., 32., 33., nan],
                 [35., 36., 37., 38., nan]]])
 
@@ -398,16 +395,13 @@ def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
     .. code-block:: python
 
         >>> np.random.seed(1)
-        >>> choose_along_axis(arr, 2, p=p, nchoices=10)
+        >>> choose_along_axis(arr, 2, p=p, nchoices=10)  # doctest: +NORMALIZE_WHITESPACE
         array([[[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
                 [ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.]],
-
                [[11., 11., 10., 11., 11., 11., 10., 10., 10., 11.],
                 [15., 15., 16., 16., 16., 15., 16., 16., 15., 16.]],
-
                [[22., 22., 20., 22., 20., 21., 22., 20., 20., 20.],
                 [25., 27., 25., 25., 26., 25., 26., 25., 26., 27.]],
-
                [[30., 31., 32., 31., 30., 32., 32., 32., 33., 32.],
                 [38., 35., 35., 38., 36., 35., 38., 36., 38., 37.]]])
 
@@ -472,17 +466,14 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
         ...     coords=[np.arange(4), np.arange(2), np.arange(5)],
         ... )
         
-        >>> da
+        >>> da  # doctest: +NORMALIZE_WHITESPACE
         <xarray.DataArray (x: 4, y: 2, z: 5)>
         array([[[ 0,  1,  2,  3,  4],
                 [ 5,  6,  7,  8,  9]],
-
                [[10, 11, 12, 13, 14],
                 [15, 16, 17, 18, 19]],
-
                [[20, 21, 22, 23, 24],
                 [25, 26, 27, 28, 29]],
-
                [[30, 31, 32, 33, 34],
                 [35, 36, 37, 38, 39]]])
         Coordinates:
@@ -513,17 +504,14 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
     .. code-block:: python
 
         >>> np.random.seed(1)
-        >>> choose_along_dim(da, 'z', samples=3)
+        >>> choose_along_dim(da, 'z', samples=3)  # doctest: +NORMALIZE_WHITESPACE
         <xarray.DataArray (x: 4, y: 2, z: 3)>
         array([[[ 2,  3,  0],
                 [ 6,  5,  5]],
-
                [[10, 11, 11],
                 [17, 17, 18]],
-
                [[21, 24, 20],
                 [28, 27, 27]],
-
                [[30, 30, 34],
                 [39, 36, 38]]])
         Coordinates:
