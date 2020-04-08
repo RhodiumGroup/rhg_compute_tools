@@ -559,6 +559,6 @@ class random:
     def __init__(self, xarray_obj):
         self._xarray_obj = xarray_obj
     
-    @functools.wraps(choice_along_dim)
+    @functools.wraps(choose_along_dim)
     def choice(self, *args, **kwargs):
         return choose_along_dim(self._xarray_obj, *args, **kwargs)
