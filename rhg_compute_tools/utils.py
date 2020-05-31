@@ -408,7 +408,7 @@ def block_globals(
     closurevars = inspect.getclosurevars(obj)
     for instr in dis.get_instructions(obj):
         if instr.opname == 'LOAD_GLOBAL':
-            elif (
+            if (
                 (instr.argval in closurevars.globals)
                 or (instr.argval in closurevars.nonlocals)
             ):
