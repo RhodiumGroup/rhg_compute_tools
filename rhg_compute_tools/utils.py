@@ -334,8 +334,7 @@ def block_globals(
         ...     a_number = 5
         ...     result = a_number + my_data
         ...     return result  # doctest: +ELLIPSIS
-        ...
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         TypeError: Illegal <class 'int'> global found in add_5: my_data
 
@@ -352,8 +351,7 @@ def block_globals(
         ...         a_number = 5
         ...         result = a_number + my_data
         ...         return result  # doctest: +ELLIPSIS
-        ...
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         TypeError: Illegal <class 'int'> global found in add_5: my_data
 
