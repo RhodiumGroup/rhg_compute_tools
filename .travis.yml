@@ -4,7 +4,7 @@ after_success:
 deploy:
   on:
     tags: true
-    python: 3.6
+    python: 3.7
     repo: RhodiumGroup/rhg_compute_tools
     condition: $TEST_ENV = conda
 
@@ -44,7 +44,8 @@ install:
   fi
 language: python
 python:
-- 3.6
+- 3.7
+- 3.8
 script:
 - if [[ "$TEST_ENV" == "conda" ]];
   then
