@@ -281,6 +281,7 @@ class html(object):
 _functions_and_modules = (
     types.FunctionType,
     types.ModuleType,
+    types.ClassType,
     types.MethodType,
     types.BuiltinMethodType,
     types.BuiltinFunctionType
@@ -291,7 +292,7 @@ _functions_and_modules = (
 def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None):
     """
     Decorator to prevent the use of undefined closures and globals in functions and classes
-    
+
     Parameters
     ----------
     func : function
@@ -300,8 +301,9 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
     allowed_types : type or tuple of types, optional
         Types which are allowed as globals. By default, functions and
         modules are allowed. The full set of allowed types is drawn from
-        the ``types`` module, and includes :py:class:`~types.FunctionType`, 
-        :py:class:`~types.ModuleType`, :py:class:`~types.MethodType`, 
+        the ``types`` module, and includes :py:class:`~types.FunctionType`,
+        :py:class:`~types.ModuleType`, :py:class:`~types.MethodType`,
+        :py:class:`~types.ClassType`,
         :py:class:`~types.BuiltinMethodType`, and
         :py:class:`~types.BuiltinFunctionType`.
     include_defaults : bool, optional
@@ -317,9 +319,9 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
 
     Examples
     --------
-    
+
     Wrap a function to block globals:
-    
+
     .. code-block:: python
 
         >>> my_data = 10
@@ -334,9 +336,9 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
         Traceback (most recent call last)
         ...
         TypeError: Illegal <class 'int'> global found in add_5: my_data
-        
+
     Wrapping a class will prevent globals from being used in all methods:
-    
+
     .. code-block:: python
 
         >>> @block_globals
@@ -355,7 +357,7 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
 
     By default, functions and modules are allowed in the list of globals. You
     can modify this list with the ``allowed_types`` argument:
-    
+
     .. code-block:: python
 
         >>> result_formatter = 'my number is {}'
@@ -380,16 +382,16 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
         ...
         TypeError: Undefined global in get_mean: da
     """
-    
+
     if allowed_types is None:
         allowed_types = _functions_and_modules
-    
+
     if (allowed_types is not None) and include_defaults:
         if not isinstance(allowed_types, collections.abc.Sequence):
             allowed_types = [allowed_types]
-        
+
         allowed_types = tuple(list(allowed_types) + list(_functions_and_modules))
-    
+
     if whitelist is None:
         whitelist = []
 
