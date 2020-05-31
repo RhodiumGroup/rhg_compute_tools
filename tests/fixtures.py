@@ -1,7 +1,7 @@
 
 import pytest
 import click
-
+import rhg_compute_tools.cli
 
 @pytest.fixture
 def replicate_directory_structure_on_gcs_stub(mocker):
