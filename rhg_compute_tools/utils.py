@@ -281,7 +281,7 @@ class html(object):
 _default_allowed_types = (
     types.FunctionType,
     types.ModuleType,
-    types.ClassType,
+    (type if not hasattr(types, 'ClassType') else types.ClassType),
     types.MethodType,
     types.BuiltinMethodType,
     types.BuiltinFunctionType
