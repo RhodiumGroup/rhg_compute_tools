@@ -4,6 +4,12 @@ import json
 import numpy as np
 import os
 
+import dis
+import toolz
+import inspect
+import types
+import collections.abc
+
 
 def expand(func):
     '''
@@ -270,3 +276,162 @@ class html(object):
 
     def _repr_html_(self):
         return self.body
+
+
+_default_allowed_types = (
+    types.FunctionType,
+    types.ModuleType,
+    (type if not hasattr(types, 'ClassType') else types.ClassType),
+    types.MethodType,
+    types.BuiltinMethodType,
+    types.BuiltinFunctionType
+)
+
+
+@toolz.functoolz.curry
+def block_globals(
+    obj, allowed_types=None, include_defaults=True, whitelist=None
+):
+    """
+    Decorator to prevent globals and undefined closures in functions and classes
+
+    Parameters
+    ----------
+    func : function
+        Function to decorate. All globals not matching one of the allowed
+        types will raise an AssertionError
+    allowed_types : type or tuple of types, optional
+        Types which are allowed as globals. By default, functions and
+        modules are allowed. The full set of allowed types is drawn from
+        the ``types`` module, and includes :py:class:`~types.FunctionType`,
+        :py:class:`~types.ModuleType`, :py:class:`~types.MethodType`,
+        :py:class:`~types.ClassType`,
+        :py:class:`~types.BuiltinMethodType`, and
+        :py:class:`~types.BuiltinFunctionType`.
+    include_defaults : bool, optional
+        If allowed_types is provided, setting ``include_defaults`` to True will
+        append the default list of functions, modules, and methods to the
+        user-passed list of allowed types. Default is True, in which case
+        only the user-passed elements will be allowed. Setting to False will
+        allow only the types passed in ``allowed_types``.
+    whitelist : list of str, optional
+        Optional list of variable names to whitelist. If a list is provided,
+        global variables will be compared to elements of this list based on
+        their string names. Default (None) is no whitelist.
+
+    Examples
+    --------
+
+    Wrap a function to block globals:
+
+    .. code-block:: python
+
+        >>> my_data = 10
+
+        >>> @block_globals
+        ... def add_5(data):
+        ...     ''' can you spot the global? '''
+        ...     a_number = 5
+        ...     result = a_number + my_data
+        ...     return result  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: Illegal <class 'int'> global found in add_5: my_data
+
+    Wrapping a class will prevent globals from being used in all methods:
+
+    .. code-block:: python
+
+        >>> @block_globals
+        ... class MyClass:
+        ...
+        ...     @staticmethod
+        ...     def add_5(data):
+        ...         ''' can you spot the global? '''
+        ...         a_number = 5
+        ...         result = a_number + my_data
+        ...         return result  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: Illegal <class 'int'> global found in add_5: my_data
+
+    By default, functions and modules are allowed in the list of globals. You
+    can modify this list with the ``allowed_types`` argument:
+
+    .. code-block:: python
+
+        >>> result_formatter = 'my number is {}'
+        >>> @block_globals(allowed_types=str)
+        ... def add_5(data):
+        ...     ''' only allowed globals here! '''
+        ...     a_number = 5
+        ...     result = a_number + data
+        ...     return result_formatter.format(result)
+        ...
+        >>> add_5(3)
+        'my number is 8'
+
+    block_globals will also catch undefined references:
+
+    .. code-block:: python
+
+        >>> @block_globals
+        ... def get_mean(df):
+        ...     return da.mean()  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: Undefined global in get_mean: da
+    """
+
+    if allowed_types is None:
+        allowed_types = _default_allowed_types
+
+    if (allowed_types is not None) and include_defaults:
+        if not isinstance(allowed_types, collections.abc.Sequence):
+            allowed_types = [allowed_types]
+
+        allowed_types = (
+            tuple(list(allowed_types) + list(_default_allowed_types))
+        )
+
+    if whitelist is None:
+        whitelist = []
+
+    if isinstance(obj, type):
+        for attr in obj.__dict__:
+            if callable(getattr(obj, attr)):
+                setattr(obj, attr, block_globals(getattr(obj, attr)))
+        return obj
+
+    closurevars = inspect.getclosurevars(obj)
+    for instr in dis.get_instructions(obj):
+        if instr.opname == 'LOAD_GLOBAL':
+            if instr.argval in closurevars.builtins:
+                continue
+            elif (
+                (instr.argval in closurevars.globals)
+                or (instr.argval in closurevars.nonlocals)
+            ):
+                if instr.argval in whitelist:
+                    continue
+                if instr.argval in closurevars.globals:
+                    g = closurevars.globals[instr.argval]
+                else:
+                    g = closurevars.nonlocals[instr.argval]
+                if not isinstance(g, allowed_types):
+                    raise TypeError(
+                        'Illegal {} global found in {}: {}'.format(
+                            type(g), obj.__name__, instr.argval,
+                        )
+                    )
+            else:
+                raise TypeError('Undefined global in {}: {}'.format(
+                        obj.__name__, instr.argval,
+                    )
+                )
+
+    @functools.wraps(obj)
+    def inner(*args, **kwargs):
+        return obj(*args, **kwargs)
+
+    return inner
