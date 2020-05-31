@@ -278,7 +278,7 @@ class html(object):
         return self.body
 
 
-_functions_and_modules = (
+_default_allowed_types = (
     types.FunctionType,
     types.ModuleType,
     types.ClassType,
@@ -289,9 +289,11 @@ _functions_and_modules = (
 
 
 @toolz.functoolz.curry
-def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None):
+def block_globals(
+    obj, allowed_types=None, include_defaults=True, whitelist=None
+):
     """
-    Decorator to prevent the use of undefined closures and globals in functions and classes
+    Decorator to prevent globals and undefined closures in functions and classes
 
     Parameters
     ----------
@@ -384,13 +386,15 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
     """
 
     if allowed_types is None:
-        allowed_types = _functions_and_modules
+        allowed_types = _default_allowed_types
 
     if (allowed_types is not None) and include_defaults:
         if not isinstance(allowed_types, collections.abc.Sequence):
             allowed_types = [allowed_types]
 
-        allowed_types = tuple(list(allowed_types) + list(_functions_and_modules))
+        allowed_types = (
+            tuple(list(allowed_types) + list(_default_allowed_types))
+        )
 
     if whitelist is None:
         whitelist = []
@@ -404,14 +408,27 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
     closurevars = inspect.getclosurevars(obj)
     for instr in dis.get_instructions(obj):
         if instr.opname == 'LOAD_GLOBAL':
-            if instr.argval in closurevars.globals:
+            elif (
+                (instr.argval in closurevars.globals)
+                or (instr.argval in closurevars.nonlocals)
+            ):
                 if instr.argval in whitelist:
                     continue
-                g = closurevars.globals[instr.argval]
+                if instr.argval in closurevars.globals:
+                    g = closurevars.globals[instr.argval]
+                else:
+                    g = closurevars.nonlocals[instr.argval]
                 if not isinstance(g, allowed_types):
-                    raise TypeError('Illegal {} global found in {}: {}'.format(type(g), obj.__name__, instr.argval))
+                    raise TypeError(
+                        'Illegal {} global found in {}: {}'.format(
+                            type(g), obj.__name__, instr.argval,
+                        )
+                    )
             else:
-                raise TypeError('Undefined global in {}: {}'.format(obj.__name__, instr.argval))
+                raise TypeError('Undefined global in {}: {}'.format(
+                        obj.__name__, instr.argval,
+                    )
+                )
 
     @functools.wraps(obj)
     def inner(*args, **kwargs):
