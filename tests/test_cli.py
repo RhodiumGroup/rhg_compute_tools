@@ -7,7 +7,7 @@ import pytest
 import click
 from click.testing import CliRunner
 import rhg_compute_tools.cli
-from fixtures import (
+from tests.fixtures import (
     replicate_directory_structure_on_gcs_stub,
     tempfl_path
 )
