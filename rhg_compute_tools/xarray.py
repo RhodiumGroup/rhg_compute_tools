@@ -53,7 +53,7 @@ def dataarrays_from_delayed(futures, client=None):
 
         >>> xr.concat(arrs, dim='simulation') # doctest: +ELLIPSIS
         <xarray.DataArray ...(simulation: 3, x: 2)>
-        dask.array<shape=(3, 2), dtype=int64, chunksize=(1, 2)>
+        dask.array<...shape=(3, 2), dtype=int64, chunksize=(1, 2)...>
         Coordinates:
           * x        (x) <U1 'a' 'b'
         Dimensions without coordinates: simulation
@@ -335,7 +335,7 @@ import functools
 def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
     '''
     Wrapper on np.random.choice, but along a single dimension within a larger array
-    
+
     Parameters
     ----------
     arr : np.array
@@ -353,21 +353,21 @@ def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
         Array with the same shape as ``arr`` with weights for each choice. Each
         dimension is sampled independently, so weights will be normalized to 1
         along the ``axis`` dimension.
-    
+
     Returns
     -------
     sampled : np.array
         Array with the same shape as ``arr`` but with length ``nchoices`` along axis
         ``axis`` and with values chosen from the values of ``arr`` along dimension
         ``axis`` with weights ``p``.
-    
+
     Examples
     --------
-    
+
     Let's say we have an array with NaNs in it:
-    
+
     .. code-block:: python
-    
+
         >>> arr = np.arange(40).reshape(4, 2, 5).astype(float)
         >>> for i in range(4):
         ...     arr[i, :, i+1:] = np.nan
@@ -381,14 +381,14 @@ def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
                [[30., 31., 32., 33., nan],
                 [35., 36., 37., 38., nan]]])
 
-                
+
     We can set weights such that we only select from non-nan values
-    
+
     .. code-block:: python
 
         >>> p = (~np.isnan(arr))
         >>> p = p / p.sum(axis=2).reshape(4, 2, 1)
-    
+
     Now, sampling from this along the second dimension will draw from
     these values:
 
@@ -421,14 +421,14 @@ def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
         result[indexer] = np.random.choice(
             arr[indexer], size=nchoices, replace=replace, p=p[indexer],
         )
-        
+
     return result
 
 
 def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
     '''
     Sample values from a DataArray along a dimension
-    
+
     Wraps :py:func:`np.random.choice` to sample a different random index
     (or set of indices) from along dimension ``dim`` for each combination of
     elements along the other dimensions. This is very different from block
@@ -449,7 +449,7 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
         Whether to expand the array along the sampled dimension.
     new_dim_name : str, optoinal
         Name for the new dimension. If not provided, will use ``dim``.
-        
+
     Returns
     -------
     sampled : xr.DataArray
@@ -457,15 +457,15 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
 
     Examples
     --------
-    
+
     .. code-block:: python
-    
+
         >>> da = xr.DataArray(
         ...     np.arange(40).reshape(4, 2, 5),
         ...     dims=['x', 'y', 'z'],
         ...     coords=[np.arange(4), np.arange(2), np.arange(5)],
         ... )
-        
+
         >>> da  # doctest: +NORMALIZE_WHITESPACE
         <xarray.DataArray (x: 4, y: 2, z: 5)>
         array([[[ 0,  1,  2,  3,  4],
@@ -500,7 +500,7 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
     If you provide a ``sample`` argument greater than one (or
     set expand=True) the array will be expanded to a new
     dimension:
-    
+
     .. code-block:: python
 
         >>> np.random.seed(1)
@@ -520,7 +520,7 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
           * z        (z) int64 0 1 2
     '''
     sampled = choose_along_axis(da.values, axis=da.get_axis_num(dim), nchoices=samples)
-    
+
     if samples > 1:
         expand=True
 
@@ -535,7 +535,7 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
     else:
         if new_dim_name is None:
             new_dim_name = dim
-        
+
         return xr.DataArray(
             sampled,
             dims=[d if d != dim else new_dim_name for d in da.dims],
@@ -546,7 +546,7 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
 class random:
     def __init__(self, xarray_obj):
         self._xarray_obj = xarray_obj
-    
+
     @functools.wraps(choose_along_dim)
     def choice(self, *args, **kwargs):
         return choose_along_dim(self._xarray_obj, *args, **kwargs)
