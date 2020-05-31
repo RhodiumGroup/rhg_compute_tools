@@ -369,7 +369,7 @@ def block_globals(
         ...     return result_formatter.format(result)
         ...
         >>> add_5(3)
-        my number is 8
+        'my number is 8'
 
     block_globals will also catch undefined references:
 
