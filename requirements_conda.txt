@@ -1,4 +1,6 @@
 pandas
 xarray
+matplotlib
+numpy
 numexpr
 bottleneck
