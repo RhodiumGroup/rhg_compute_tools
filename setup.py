@@ -30,7 +30,7 @@ test_requirements = [
 
 setup(
     name='rhg_compute_tools',
-    version='0.2.1',
+    version='0.2.2',
     description="Tools for using compute.rhg.com and compute.impactlab.org",
     long_description=readme + '\n\n' + history,
     long_description_content_type='text/x-rst',
@@ -47,15 +47,13 @@ setup(
     zip_safe=False,
     keywords='rhg_compute_tools',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6'
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
     test_suite='tests',
     tests_require=test_requirements,
