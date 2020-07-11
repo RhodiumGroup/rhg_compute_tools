@@ -3,7 +3,6 @@ White-box testing to ensure that CLI passes variables correctly
 """
 
 
-import click
 import pytest
 from click.testing import CliRunner
 

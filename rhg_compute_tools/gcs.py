@@ -75,7 +75,7 @@ def get_bucket(
 
 
 def _remove_prefix(text, prefix="/gcs/rhg-data/"):
-    return text[text.startswith(prefix) and len(prefix) :]
+    return text[text.startswith(prefix) and len(prefix):]
 
 
 def _get_path_types(src, dest):

@@ -80,8 +80,8 @@ def get_color_scheme(values, cmap=None, colors=None, levels=None, how=None):
 
     else:
         raise ValueError(
-            "color scheme `how` argument {} not recognized. "
-            "choose from {eq_hist, log, symlog, linear} or "
+            f"Color scheme `how` argument {how} not recognized. "
+            "Choose from {eq_hist, log, symlog, linear} or "
             "provide `levels`".format(how)
         )
 
