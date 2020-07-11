@@ -1,16 +1,15 @@
-
 import matplotlib.cm
-from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
 
 try:
     _string_types = (str, unicode)
 except NameError:
-    _string_types = (str, )
+    _string_types = (str,)
 
 
 def get_color_scheme(values, cmap=None, colors=None, levels=None, how=None):
-    '''
+    """
     Generate a norm and color scheme from data
 
     Parameters
@@ -40,13 +39,13 @@ def get_color_scheme(values, cmap=None, colors=None, levels=None, how=None):
         :py:class:`matplotlib.colors.Normalize` instance using the provided
         values, levels, color specification, and "how" method
 
-    '''
+    """
 
     mini, maxi = float(values.min()), float(values.max())
     amax = max(abs(mini), abs(maxi))
 
     if (cmap is None) and (colors is not None):
-        cmap = LinearSegmentedColormap.from_list('custom_cmap', colors)
+        cmap = LinearSegmentedColormap.from_list("custom_cmap", colors)
     elif cmap is None:
         if (mini < 0) and (maxi > 0):
             cmap = matplotlib.cm.RdBu_r
@@ -56,44 +55,41 @@ def get_color_scheme(values, cmap=None, colors=None, levels=None, how=None):
         cmap = matplotlib.cm.get_cmap(cmap)
 
     if how is None and levels is not None:
-        norm = matplotlib.colors.BoundaryNorm(
-            levels,
-            cmap.N)
+        norm = matplotlib.colors.BoundaryNorm(levels, cmap.N)
 
-    elif (how is None) or (how == 'eq_hist'):
+    elif (how is None) or (how == "eq_hist"):
         if levels is None:
             levels = 11
 
         bin_edges = np.percentile(
-            values[~np.isnan(values)], np.linspace(0, 100, levels))
+            values[~np.isnan(values)], np.linspace(0, 100, levels)
+        )
 
-        norm = matplotlib.colors.BoundaryNorm(
-            bin_edges,
-            cmap.N)
+        norm = matplotlib.colors.BoundaryNorm(bin_edges, cmap.N)
 
-    elif how == 'log':
+    elif how == "log":
         norm = matplotlib.colors.LogNorm(vmin=mini, vmax=maxi)
 
-    elif how == 'symlog':
+    elif how == "symlog":
         norm = matplotlib.colors.SymLogNorm(
-            vmin=-amax, vmax=amax, linthresh=(amax / 100))
+            vmin=-amax, vmax=amax, linthresh=(amax / 100)
+        )
 
-    elif how == 'linear':
+    elif how == "linear":
         norm = matplotlib.colors.Normalize(vmin=mini, vmax=maxi)
 
     else:
         raise ValueError(
-            'color scheme `how` argument {} not recognized. '
-            'choose from {eq_hist, log, symlog, linear} or '
-            'provide `levels`'
-            .format(how))
+            "color scheme `how` argument {} not recognized. "
+            "choose from {eq_hist, log, symlog, linear} or "
+            "provide `levels`".format(how)
+        )
 
     return cmap, norm
 
 
-def add_colorbar(
-        ax, cmap='viridis', norm=None, orientation='vertical', **kwargs):
-    '''
+def add_colorbar(ax, cmap="viridis", norm=None, orientation="vertical", **kwargs):
+    """
     Add a colorbar to a plot, using a pre-defined cmap and norm
 
     Parameters
@@ -111,14 +107,13 @@ def add_colorbar(
         default 'vertical'
     **kwargs :
         passed to colorbar constructor
-    '''
+    """
 
     if norm is None:
         norm = matplotlib.colors.Normalize
 
     n_cmap = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
     n_cmap.set_array([])
-    cbar = ax.get_figure().colorbar(
-        n_cmap, ax=ax, orientation=orientation, **kwargs)
+    cbar = ax.get_figure().colorbar(n_cmap, ax=ax, orientation=orientation, **kwargs)
 
     return cbar

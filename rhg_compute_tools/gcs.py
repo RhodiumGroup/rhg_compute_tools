@@ -3,12 +3,13 @@
 """Tools for interacting with GCS infrastructure."""
 
 import os
-from os.path import join, isdir, basename, exists
+import shlex
+import subprocess
+from datetime import datetime as dt
+from os.path import basename, exists, isdir, join
+
 from google.cloud import storage
 from google.oauth2 import service_account
-from datetime import datetime as dt
-import subprocess
-import shlex
 
 
 def authenticated_client(credentials=None, **client_kwargs):

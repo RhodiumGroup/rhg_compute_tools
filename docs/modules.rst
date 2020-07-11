@@ -1,5 +1,5 @@
-API
-===
+rhg_compute_tools
+=================
 
 .. toctree::
    :maxdepth: 4

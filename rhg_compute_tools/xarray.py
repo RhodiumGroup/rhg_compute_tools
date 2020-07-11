@@ -1,10 +1,13 @@
-import xarray as xr
+import functools
+
 import dask.array
 import dask.distributed as dd
+import numpy as np
+import xarray as xr
 
 
 def dataarrays_from_delayed(futures, client=None):
-    '''
+    """
     Returns a list of xarray dataarrays from a list of futures of dataarrays
 
     Parameters
@@ -59,7 +62,7 @@ def dataarrays_from_delayed(futures, client=None):
         Dimensions without coordinates: simulation
 
         >>> client.close()
-    '''
+    """
 
     if client is None:
         client = dd.get_client()
@@ -67,26 +70,29 @@ def dataarrays_from_delayed(futures, client=None):
     delayed_arrays = client.map(lambda x: x.data, futures)
 
     dask_array_metadata = client.gather(
-        client.map(lambda x: (x.data.shape, x.data.dtype), futures))
+        client.map(lambda x: (x.data.shape, x.data.dtype), futures)
+    )
 
     dask_arrays = [
         dask.array.from_delayed(delayed_arrays[i], *dask_array_metadata[i])
-        for i in range(len(futures))]
+        for i in range(len(futures))
+    ]
 
     array_metadata = client.gather(
         client.map(
-            lambda x: {'dims': x.dims, 'coords': x.coords, 'attrs': x.attrs},
-            futures))
+            lambda x: {"dims": x.dims, "coords": x.coords, "attrs": x.attrs}, futures
+        )
+    )
 
     data_arrays = [
-        xr.DataArray(dask_arrays[i], **array_metadata[i])
-        for i in range(len(futures))]
+        xr.DataArray(dask_arrays[i], **array_metadata[i]) for i in range(len(futures))
+    ]
 
     return data_arrays
 
 
 def dataarray_from_delayed(futures, dim=None, client=None):
-    '''
+    """
     Returns a DataArray from a list of futures
 
     Parameters
@@ -138,7 +144,7 @@ def dataarray_from_delayed(futures, dim=None, client=None):
           * simulation  (simulation) int64 0 1 2
 
         >>> client.close()
-    '''
+    """
 
     data_arrays = dataarrays_from_delayed(futures, client=client)
     da = xr.concat(data_arrays, dim=dim)
@@ -147,7 +153,7 @@ def dataarray_from_delayed(futures, dim=None, client=None):
 
 
 def datasets_from_delayed(futures, client=None):
-    '''
+    """
     Returns a list of xarray datasets from a list of futures of datasets
 
     Parameters
@@ -207,60 +213,70 @@ def datasets_from_delayed(futures, client=None):
             var1     (y, x) int64 dask.array<chunksize=(1, 2), meta=np.ndarray>
 
         >>> client.close()
-    '''
+    """
 
     if client is None:
         client = dd.get_client()
 
     data_var_keys = client.gather(
-        client.map(lambda x: list(x.data_vars.keys()), futures))
+        client.map(lambda x: list(x.data_vars.keys()), futures)
+    )
 
     delayed_arrays = [
-        {
-            k: (client.submit(lambda x: x[k].data, futures[i]))
-            for k in data_var_keys[i]}
-        for i in range(len(futures))]
+        {k: (client.submit(lambda x: x[k].data, futures[i])) for k in data_var_keys[i]}
+        for i in range(len(futures))
+    ]
 
     dask_array_metadata = [
         {
             k: (
                 client.submit(
-                    lambda x: (x[k].data.shape, x[k].data.dtype),
-                    futures[i])
-                .result())
-            for k in data_var_keys[i]}
-        for i in range(len(futures))]
+                    lambda x: (x[k].data.shape, x[k].data.dtype), futures[i]
+                ).result()
+            )
+            for k in data_var_keys[i]
+        }
+        for i in range(len(futures))
+    ]
 
     dask_data_arrays = [
         {
             k: (
                 dask.array.from_delayed(
-                    delayed_arrays[i][k], *dask_array_metadata[i][k]))
-            for k in data_var_keys[i]}
-        for i in range(len(futures))]
+                    delayed_arrays[i][k], *dask_array_metadata[i][k]
+                )
+            )
+            for k in data_var_keys[i]
+        }
+        for i in range(len(futures))
+    ]
 
     array_metadata = [
         {
             k: client.submit(
                 lambda x: {
-                    'dims': x[k].dims,
-                    'coords': x[k].coords,
-                    'attrs': x[k].attrs},
-                futures[i]).result()
-            for k in data_var_keys[i]}
-        for i in range(len(futures))]
+                    "dims": x[k].dims,
+                    "coords": x[k].coords,
+                    "attrs": x[k].attrs,
+                },
+                futures[i],
+            ).result()
+            for k in data_var_keys[i]
+        }
+        for i in range(len(futures))
+    ]
 
     data_arrays = [
         {
-            k: (
-                xr.DataArray(dask_data_arrays[i][k], **array_metadata[i][k]))
-            for k in data_var_keys[i]}
-        for i in range(len(futures))]
+            k: (xr.DataArray(dask_data_arrays[i][k], **array_metadata[i][k]))
+            for k in data_var_keys[i]
+        }
+        for i in range(len(futures))
+    ]
 
     datasets = [xr.Dataset(arr) for arr in data_arrays]
 
-    dataset_metadata = client.gather(
-        client.map(lambda x: x.attrs, futures))
+    dataset_metadata = client.gather(client.map(lambda x: x.attrs, futures))
 
     for i in range(len(futures)):
         datasets[i].attrs.update(dataset_metadata[i])
@@ -269,7 +285,7 @@ def datasets_from_delayed(futures, client=None):
 
 
 def dataset_from_delayed(futures, dim=None, client=None):
-    '''
+    """
     Returns an :py:class:`xarray.Dataset` from a list of futures
 
     Parameters
@@ -320,20 +336,16 @@ def dataset_from_delayed(futures, dim=None, client=None):
             var1     (y, x) int64 dask.array<chunksize=(1, 2), meta=np.ndarray>
 
         >>> client.close()
-    '''
+    """
 
     datasets = datasets_from_delayed(futures, client=client)
     ds = xr.concat(datasets, dim=dim)
 
     return ds
 
-import numpy as np
-import xarray as xr
-import functools
-
 
 def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
-    '''
+    """
     Wrapper on np.random.choice, but along a single dimension within a larger array
 
     Parameters
@@ -408,12 +420,12 @@ def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
     See Also
     --------
     :py:func:`np.random.choice` : 1-d version of this function
-    '''
+    """
     if p is None:
         p = np.ones_like(arr).astype(float) / arr.shape[axis]
 
     axis = axis % len(arr.shape)
-    new_shape = tuple(list(arr.shape[:axis]) + [nchoices] + list(arr.shape[axis+1:]))
+    new_shape = tuple(list(arr.shape[:axis]) + [nchoices] + list(arr.shape[axis + 1 :]))
     result = np.ndarray(shape=new_shape, dtype=arr.dtype)
 
     for ind in np.ndindex(tuple([l for i, l in enumerate(arr.shape) if i != axis])):
@@ -426,7 +438,7 @@ def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
 
 
 def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
-    '''
+    """
     Sample values from a DataArray along a dimension
 
     Wraps :py:func:`np.random.choice` to sample a different random index
@@ -518,11 +530,11 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
           * x        (x) int64 0 1 2 3
           * y        (y) int64 0 1
           * z        (z) int64 0 1 2
-    '''
+    """
     sampled = choose_along_axis(da.values, axis=da.get_axis_num(dim), nchoices=samples)
 
     if samples > 1:
-        expand=True
+        expand = True
 
     if not expand:
         sampled = np.take(sampled, 0, axis=da.get_axis_num(dim))
@@ -542,7 +554,8 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
             coords=[da.coords[d] if d != dim else np.arange(samples) for d in da.dims],
         )
 
-@xr.register_dataarray_accessor('random')
+
+@xr.register_dataarray_accessor("random")
 class random:
     def __init__(self, xarray_obj):
         self._xarray_obj = xarray_obj

@@ -3,5 +3,5 @@
 """Top-level package for RHG Compute Tools."""
 
 __author__ = """Michael Delgado"""
-__email__ = 'mdelgado@rhg.com'
-__version__ = '0.2.2'
+__email__ = "mdelgado@rhg.com"
+__version__ = "0.2.2"
