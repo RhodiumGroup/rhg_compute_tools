@@ -79,16 +79,19 @@ def _remove_prefix(text, prefix="/gcs/rhg-data/"):
 
 def _get_path_types(src, dest):
     src_gs = src
+    src_gcs = src
     dest_gs = dest
     dest_gcs = dest
     if src_gs.startswith("/gcs/"):
         src_gs = src.replace("/gcs/", "gs://")
+    if src_gcs.startswith("gs://"):
+        src_gs = src.replace("gs://", "/gcs/")
     if dest_gs.startswith("/gcs/"):
         dest_gs = dest.replace("/gcs/", "gs://")
     if dest_gcs.startswith("gs://"):
         dest_gcs = dest.replace("gs://", "/gcs/")
 
-    return src_gs, dest_gs, dest_gcs
+    return src_gs, src_gcs, dest_gs, dest_gcs
 
 
 def rm(path, flags=[]):
@@ -217,11 +220,14 @@ def cp(src, dest, flags=[]):
     """
 
     st_time = dt.now()
+    
+    src = str(src)
+    dest = str(dest)
 
     # make sure we're using URL
     # if /gcs or gs:/ are not in src or not in dest
     # then these won't change anything
-    src_gs, dest_gs, dest_gcs = _get_path_types(src, dest)
+    src_gs, src_gcs, dest_gs, dest_gcs = _get_path_types(src, dest)
 
     # if directory already existed cp would put src into dest_gcs
     if exists(dest_gcs):
@@ -236,12 +242,13 @@ def cp(src, dest, flags=[]):
         + " {} {}".format(src_gs, dest_gs)
     )
 
+    print(f"Running cmd: {cmd}")
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
 
     # need to add directories if you were recursively copying a directory
-    if isdir(src) and dest_gcs.startswith("/gcs/"):
+    if isdir(src_gcs) and dest_gcs.startswith("/gcs/"):
         # now make directory blobs on gcs so that gcsfuse recognizes it
         dirs_to_make = [x[0].replace(src, dest_base) for x in os.walk(src)]
         for d in dirs_to_make:
@@ -294,6 +301,9 @@ def sync(src, dest, flags=["r", "d"]):
 
     st_time = dt.now()
 
+    src = str(src)
+    dest = str(dest)
+    
     # remove trailing /'s
     src = src.rstrip("/")
     dest = dest.rstrip("/")
@@ -301,7 +311,7 @@ def sync(src, dest, flags=["r", "d"]):
     # make sure we're using URL
     # if /gcs or gs:/ are not in src or not in dest
     # then these won't change anything
-    src_gs, dest_gs, dest_gcs = _get_path_types(src, dest)
+    src_gs, src_gcs, dest_gs, dest_gcs = _get_path_types(src, dest)
 
     cmd = (
         "gsutil -m rsync "
@@ -316,7 +326,7 @@ def sync(src, dest, flags=["r", "d"]):
     # need to add directories if you were recursively copying a directory TO
     # gcs now make directory blobs on gcs so that gcsfuse recognizes it
     if dest_gcs.startswith("/gcs/"):
-        dirs_to_make = [x[0].replace(src, dest_gcs) for x in os.walk(src)]
+        dirs_to_make = [x[0].replace(src_gcs, dest_gcs) for x in os.walk(src_gcs)]
         for d in dirs_to_make:
             os.makedirs(d, exist_ok=True)
 
