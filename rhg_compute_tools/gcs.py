@@ -129,6 +129,7 @@ def rm(path, flags=[]):
 
     cmd = "gsutil -m rm " + " ".join(["-" + f for f in flags]) + f" {path}"
 
+    print(f"Running cmd: {cmd}")
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
@@ -319,6 +320,8 @@ def sync(src, dest, flags=["r", "d"]):
         + " {} {}".format(src_gs, dest_gs)
     )
 
+    print(f"Running cmd: {cmd}")
+    
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
