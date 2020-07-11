@@ -4,6 +4,15 @@ History
 
 .. current developments
 
+v0.2.3
+------
+* Make the gsutil API consistent, so that we have `cp`, `sync` and `rm`, each of which
+  accept the same args and kwargs (:issue:`69`)
+
+v0.2.2
+------
+* ?
+
 v0.2.1
 ------
 * Add remote scheduler deployment (part of dask_kubernetes 0.10)

@@ -69,3 +69,7 @@ rever/
 
 # jupyter
 *.ipynb_checkpoints
+
+# dask
+dask-worker-space/
+
