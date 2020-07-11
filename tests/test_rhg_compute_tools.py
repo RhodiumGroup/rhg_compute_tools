@@ -4,7 +4,6 @@
 """Tests for `rhg_compute_tools` package."""
 
 import pytest
-
 from rhg_compute_tools import kubernetes
 
 

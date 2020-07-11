@@ -1,7 +1,6 @@
 import os
 
 import pytest
-
 import rhg_compute_tools
 
 styles = [

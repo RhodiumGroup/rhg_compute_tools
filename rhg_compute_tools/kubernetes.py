@@ -4,14 +4,15 @@
 import os
 import socket
 import traceback as tb
+import warnings
 from collections import Sequence
 
 import dask
 import dask.distributed as dd
 import numpy as np
 import yaml as yml
+
 from dask_kubernetes import KubeCluster
-import warnings
 
 
 def traceback(ftr):

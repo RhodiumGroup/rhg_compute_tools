@@ -425,7 +425,7 @@ def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
         p = np.ones_like(arr).astype(float) / arr.shape[axis]
 
     axis = axis % len(arr.shape)
-    new_shape = tuple(list(arr.shape[:axis]) + [nchoices] + list(arr.shape[axis + 1:]))
+    new_shape = tuple(list(arr.shape[:axis]) + [nchoices] + list(arr.shape[axis + 1 :]))
     result = np.ndarray(shape=new_shape, dtype=arr.dtype)
 
     for ind in np.ndindex(tuple([l for i, l in enumerate(arr.shape) if i != axis])):
