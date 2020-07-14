@@ -317,7 +317,7 @@ def dataset_from_delayed(futures, dim=None, client=None):
           * x        (x) <U1 'a' 'b'
           * y        (y) int64 0 1 2
         Data variables:
-            var1     (y, x) int64 dask.array<shape=(3, 2), chunksize=(1, 2)>
+            var1     (y, x) int64 dask.array<chunksize=(1, 2), meta=np.ndarray>
 
         >>> client.close()
     '''
