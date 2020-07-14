@@ -1,5 +1,6 @@
 pandas==0.25.3
 xarray==0.14.1
+google-cloud-storage=1.23.0
 matplotlib
 numpy
 numexpr

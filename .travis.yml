@@ -15,7 +15,7 @@ deploy:
   user: delgadom
 env:
   matrix:
-  - TEST_ENV=tox
+  # - TEST_ENV=tox
   - TEST_ENV=conda
 install:
 - pip install --upgrade pip
