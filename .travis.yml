@@ -15,33 +15,24 @@ deploy:
   user: delgadom
 env:
   matrix:
-  # - TEST_ENV=tox
   - TEST_ENV=conda
 install:
 - pip install --upgrade pip
-- if [[ "$TEST_ENV" == "conda" ]]; then
-    if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]];
-      then wget -q https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi;
-    bash miniconda.sh -b -p $HOME/miniconda;
-    export PATH="$HOME/miniconda/bin:$PATH";
-    hash -r;
-    conda config --set always_yes yes --set changeps1 no;
-    conda update -q conda;
-    conda info -a;
+- wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+- bash miniconda.sh -b -p $HOME/miniconda;
+- export PATH="$HOME/miniconda/bin:$PATH";
+- hash -r;
+- conda config --set always_yes yes --set changeps1 no;
+- conda update -q conda;
+- conda info -a;
 
-    conda create -n test_env python=$TRAVIS_PYTHON_VERSION --yes;
-    source activate test_env;
+- conda create -n test_env python=$TRAVIS_PYTHON_VERSION --yes;
+- source activate test_env;
 
-    python setup.py install;
-    python -m pip install -r requirements.txt;
-    python -m pip install -r requirements_dev.txt;
-    conda install --yes -c conda-forge --file requirements_conda.txt;
-  else
-    pip install -U tox-travis;
-  fi
+- python -m pip install -r requirements.txt;
+- python -m pip install -r requirements_dev.txt;
+- conda install --yes -c conda-forge --file requirements_conda.txt;
+- python setup.py install;
 language: python
 python:
 - 3.7
@@ -50,14 +41,9 @@ jobs:
   allow_failures:
     - python: 3.8
 script:
-- if [[ "$TEST_ENV" == "conda" ]];
-  then
-    pytest &&
-    rm -f docs/rhg_compute_tools.*.rst &&
-    sphinx-apidoc -o docs rhg_compute_tools &&
-    sphinx-build -W -b html -d docs/_build/doctrees docs/. docs/_build/html &&
-    python setup.py sdist bdist_wheel && twine check dist/rhg_compute_tools-*.tar.gz;
-  else
-    tox;
-  fi;
+- pytest
+- rm -f docs/rhg_compute_tools.*.rst
+- sphinx-apidoc -o docs rhg_compute_tools
+- sphinx-build -W -b html -d docs/_build/doctrees docs/. docs/_build/html
+- python setup.py sdist bdist_wheel && twine check dist/rhg_compute_tools-*.tar.gz
 - python setup.py clean
