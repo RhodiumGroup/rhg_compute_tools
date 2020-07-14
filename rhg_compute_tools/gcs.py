@@ -186,10 +186,12 @@ def cp_to_gcs(src, dest, cp_flags=[]):
     warnings.warn("Deprecated. Use `cp`")
     return cp(src, dest, flags=cp_flags)
 
+
 def cp_gcs(src, dest, cp_flags=[]):
     """Deprecated. Use ``cp``"""
     warnings.warn("Deprecated. Use `cp`")
     return cp(src, dest, flags=cp_flags)
+
 
 def cp(src, dest, flags=[]):
     """Copy a file or recursively copy a directory from local
@@ -221,7 +223,7 @@ def cp(src, dest, flags=[]):
     """
 
     st_time = dt.now()
-    
+
     src = str(src)
     dest = str(dest)
 
@@ -265,6 +267,7 @@ def sync_to_gcs(src, dest, sync_flags=[]):
     warnings.warn("Deprecated. Use `sync`.")
     return sync(src, dest, flags=sync_flags)
 
+
 def sync_gcs(*args, **kwargs):
     """Deprecated. Use ``sync``"""
     warnings.warn("Deprecated. Use `sync`.")
@@ -304,7 +307,7 @@ def sync(src, dest, flags=["r", "d"]):
 
     src = str(src)
     dest = str(dest)
-    
+
     # remove trailing /'s
     src = src.rstrip("/")
     dest = dest.rstrip("/")
@@ -321,7 +324,7 @@ def sync(src, dest, flags=["r", "d"]):
     )
 
     print(f"Running cmd: {cmd}")
-    
+
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
