@@ -29,10 +29,10 @@ install:
 - conda create -n test_env python=$TRAVIS_PYTHON_VERSION --yes;
 - source activate test_env;
 
-- python setup.py install;
 - python -m pip install -r requirements.txt;
 - python -m pip install -r requirements_dev.txt;
 - conda install --yes -c conda-forge --file requirements_conda.txt;
+- python setup.py install;
 language: python
 python:
 - 3.7
