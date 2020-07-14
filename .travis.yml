@@ -15,15 +15,15 @@ deploy:
   user: delgadom
 env:
   matrix:
-  - TEST_ENV=tox
+  # - TEST_ENV=tox
   - TEST_ENV=conda
 install:
 - pip install --upgrade pip
 - if [[ "$TEST_ENV" == "conda" ]]; then
     if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]];
-      then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+      then wget -q https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi;
     bash miniconda.sh -b -p $HOME/miniconda;
     export PATH="$HOME/miniconda/bin:$PATH";
@@ -38,7 +38,7 @@ install:
     python setup.py install;
     python -m pip install -r requirements.txt;
     python -m pip install -r requirements_dev.txt;
-    conda install --yes --file requirements_conda.txt;
+    conda install --yes -c conda-forge --file requirements_conda.txt;
   else
     pip install -U tox-travis;
   fi

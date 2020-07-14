@@ -43,7 +43,7 @@ def dataarrays_from_delayed(futures, client=None):
         >>> arrs = dataarrays_from_delayed(fut)
         >>> arrs[-1]  # doctest: +ELLIPSIS
         <xarray.DataArray ...(x: 2)>
-        dask.array<shape=(2,), dtype=int64, chunksize=(2,)>
+        dask.array<...shape=(2,), dtype=int64, chunksize=(2,), chunktype=numpy.ndarray>
         Coordinates:
           * x        (x) <U1 'a' 'b'
 
@@ -53,7 +53,7 @@ def dataarrays_from_delayed(futures, client=None):
 
         >>> xr.concat(arrs, dim='simulation') # doctest: +ELLIPSIS
         <xarray.DataArray ...(simulation: 3, x: 2)>
-        dask.array<...shape=(3, 2), dtype=int64, chunksize=(1, 2)...>
+        dask.array<...shape=(3, 2), dtype=int64, chunksize=(1, 2), chunktype=numpy.ndarray>
         Coordinates:
           * x        (x) <U1 'a' 'b'
         Dimensions without coordinates: simulation
@@ -132,7 +132,7 @@ def dataarray_from_delayed(futures, dim=None, client=None):
 
         >>> da  # doctest: +ELLIPSIS
         <xarray.DataArray ...(simulation: 3, x: 2)>
-        dask.array<shape=(3, 2), dtype=int64, chunksize=(1, 2)>
+        dask.array<...shape=(3, 2), dtype=int64, chunksize=(1, 2), chunktype=numpy.ndarray>
         Coordinates:
           * x           (x) <U1 'a' 'b'
           * simulation  (simulation) int64 0 1 2
@@ -191,7 +191,7 @@ def datasets_from_delayed(futures, client=None):
         Coordinates:
           * x        (x) <U1 'a' 'b'
         Data variables:
-            var1     (x) int64 dask.array<shape=(2,), chunksize=(2,)>
+            var1     (x) int64 dask.array<chunksize=(2,), meta=np.ndarray>
 
     This list of arrays can now be manipulated using normal xarray tools:
 
@@ -204,7 +204,7 @@ def datasets_from_delayed(futures, client=None):
           * x        (x) <U1 'a' 'b'
         Dimensions without coordinates: y
         Data variables:
-            var1     (y, x) int64 dask.array<shape=(3, 2), chunksize=(1, 2)>
+            var1     (y, x) int64 dask.array<chunksize=(1, 2), meta=np.ndarray>
 
         >>> client.close()
     '''
@@ -317,7 +317,7 @@ def dataset_from_delayed(futures, dim=None, client=None):
           * x        (x) <U1 'a' 'b'
           * y        (y) int64 0 1 2
         Data variables:
-            var1     (y, x) int64 dask.array<shape=(3, 2), chunksize=(1, 2)>
+            var1     (y, x) int64 dask.array<chunksize=(1, 2), meta=np.ndarray>
 
         >>> client.close()
     '''
