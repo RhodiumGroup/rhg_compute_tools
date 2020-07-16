@@ -79,19 +79,22 @@ def _remove_prefix(text, prefix="/gcs/rhg-data/"):
 
 def _get_path_types(src, dest):
     src_gs = src
+    src_gcs = src
     dest_gs = dest
     dest_gcs = dest
     if src_gs.startswith("/gcs/"):
         src_gs = src.replace("/gcs/", "gs://")
+    if src_gcs.startswith("gs://"):
+        src_gs = src.replace("gs://", "/gcs/")
     if dest_gs.startswith("/gcs/"):
         dest_gs = dest.replace("/gcs/", "gs://")
     if dest_gcs.startswith("gs://"):
         dest_gcs = dest.replace("gs://", "/gcs/")
 
-    return src_gs, dest_gs, dest_gcs
+    return src_gs, src_gcs, dest_gs, dest_gcs
 
 
-def rm(path, cp_flags=[]):
+def rm(path, flags=[]):
     """Remove a file or recursively remove a directory from local
     path to GCS or vice versa. Must have already authenticated to use.
     Notebook servers are automatically authenticated, but workers
@@ -105,9 +108,9 @@ def rm(path, cp_flags=[]):
     path : str or :class:`pathlib.Path`
         The path to the source and destination file or directory.
         Either the `/gcs` or `gs:/` prefix will work.
-    cp_flags : list of str, optional
-        String of flags to add to the gsutil cp command. e.g.
-        `cp_flags=['r']` will run the command `gsutil -m rm -r...`
+    flags : list of str, optional
+        String of flags to add to the gsutil rm command. e.g.
+        `flags=['r']` will run the command `gsutil -m rm -r...`
         (recursive remove)
 
     Returns
@@ -124,8 +127,9 @@ def rm(path, cp_flags=[]):
 
     path = str(path).replace("/gcs/", "gs://")
 
-    cmd = "gsutil -m rm " + " ".join(["-" + f for f in cp_flags]) + f" {path}"
+    cmd = "gsutil -m rm " + " ".join(["-" + f for f in flags]) + f" {path}"
 
+    print(f"Running cmd: {cmd}")
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
@@ -177,12 +181,17 @@ def replicate_directory_structure_on_gcs(src, dst, client):
         blob.upload_from_string("")
 
 
-def cp_to_gcs(*args, **kwargs):
-    """Deprecated. Use `cp_gcs`."""
-    return cp_gcs(*args, **kwargs)
-
+def cp_to_gcs(src, dest, cp_flags=[]):
+    """Deprecated. Use ``cp``."""
+    warnings.warn("Deprecated. Use `cp`")
+    return cp(src, dest, flags=cp_flags)
 
 def cp_gcs(src, dest, cp_flags=[]):
+    """Deprecated. Use ``cp``"""
+    warnings.warn("Deprecated. Use `cp`")
+    return cp(src, dest, flags=cp_flags)
+
+def cp(src, dest, flags=[]):
     """Copy a file or recursively copy a directory from local
     path to GCS or vice versa. Must have already authenticated to use.
     Notebook servers are automatically authenticated, but workers
@@ -196,9 +205,9 @@ def cp_gcs(src, dest, cp_flags=[]):
     src, dest : str
         The paths to the source and destination file or directory.
         If on GCS, either the `/gcs` or `gs:/` prefix will work.
-    cp_flags : list of str, optional
+    flags : list of str, optional
         String of flags to add to the gsutil cp command. e.g.
-        `cp_flags=['r']` will run the command `gsutil -m cp -r...`
+        `flags=['r']` will run the command `gsutil -m cp -r...`
         (recursive copy)
 
     Returns
@@ -212,11 +221,14 @@ def cp_gcs(src, dest, cp_flags=[]):
     """
 
     st_time = dt.now()
+    
+    src = str(src)
+    dest = str(dest)
 
     # make sure we're using URL
     # if /gcs or gs:/ are not in src or not in dest
     # then these won't change anything
-    src_gs, dest_gs, dest_gcs = _get_path_types(src, dest)
+    src_gs, src_gcs, dest_gs, dest_gcs = _get_path_types(src, dest)
 
     # if directory already existed cp would put src into dest_gcs
     if exists(dest_gcs):
@@ -227,16 +239,17 @@ def cp_gcs(src, dest, cp_flags=[]):
 
     cmd = (
         "gsutil -m cp "
-        + " ".join(["-" + f for f in cp_flags])
+        + " ".join(["-" + f for f in flags])
         + " {} {}".format(src_gs, dest_gs)
     )
 
+    print(f"Running cmd: {cmd}")
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
 
     # need to add directories if you were recursively copying a directory
-    if isdir(src) and dest_gcs.startswith("/gcs/"):
+    if isdir(src_gcs) and dest_gcs.startswith("/gcs/"):
         # now make directory blobs on gcs so that gcsfuse recognizes it
         dirs_to_make = [x[0].replace(src, dest_base) for x in os.walk(src)]
         for d in dirs_to_make:
@@ -247,12 +260,18 @@ def cp_gcs(src, dest, cp_flags=[]):
     return stdout, stderr, end_time - st_time
 
 
-def sync_to_gcs(*args, **kwargs):
-    """Deprecated. Use sync_gcs"""
-    return sync_gcs(*args, **kwargs)
+def sync_to_gcs(src, dest, sync_flags=[]):
+    """Deprecated. Use ``sync``"""
+    warnings.warn("Deprecated. Use `sync`.")
+    return sync(src, dest, flags=sync_flags)
+
+def sync_gcs(*args, **kwargs):
+    """Deprecated. Use ``sync``"""
+    warnings.warn("Deprecated. Use `sync`.")
+    return sync(src, dest, flags=sync_flags)
 
 
-def sync_gcs(src, dest, sync_flags=["r", "d"]):
+def sync(src, dest, flags=["r", "d"]):
     """Sync a directory from local to GCS or vice versa. Uses `gsutil rsync`.
     Must have already authenticated to use. Notebook servers
     are automatically authenticated, but workers need to pass the path
@@ -265,9 +284,9 @@ def sync_gcs(src, dest, sync_flags=["r", "d"]):
     src, dest : str
         The paths to the source and destination file or directory.
         If on GCS, either the `/gcs` or `gs:/` prefix will work.
-    sync_flags : list of str, optional
+    flags : list of str, optional
         String of flags to add to the gsutil cp command. e.g.
-        `sync_flags=['r','d']` will run the command `gsutil -m cp -r -d...`
+        `flags=['r','d']` will run the command `gsutil -m cp -r -d...`
         (recursive copy, delete any files on dest that are not on src).
         This is the default set of flags.
 
@@ -283,6 +302,9 @@ def sync_gcs(src, dest, sync_flags=["r", "d"]):
 
     st_time = dt.now()
 
+    src = str(src)
+    dest = str(dest)
+    
     # remove trailing /'s
     src = src.rstrip("/")
     dest = dest.rstrip("/")
@@ -290,14 +312,16 @@ def sync_gcs(src, dest, sync_flags=["r", "d"]):
     # make sure we're using URL
     # if /gcs or gs:/ are not in src or not in dest
     # then these won't change anything
-    src_gs, dest_gs, dest_gcs = _get_path_types(src, dest)
+    src_gs, src_gcs, dest_gs, dest_gcs = _get_path_types(src, dest)
 
     cmd = (
         "gsutil -m rsync "
-        + " ".join(["-" + f for f in sync_flags])
+        + " ".join(["-" + f for f in flags])
         + " {} {}".format(src_gs, dest_gs)
     )
 
+    print(f"Running cmd: {cmd}")
+    
     cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
@@ -305,7 +329,7 @@ def sync_gcs(src, dest, sync_flags=["r", "d"]):
     # need to add directories if you were recursively copying a directory TO
     # gcs now make directory blobs on gcs so that gcsfuse recognizes it
     if dest_gcs.startswith("/gcs/"):
-        dirs_to_make = [x[0].replace(src, dest_gcs) for x in os.walk(src)]
+        dirs_to_make = [x[0].replace(src_gcs, dest_gcs) for x in os.walk(src_gcs)]
         for d in dirs_to_make:
             os.makedirs(d, exist_ok=True)
 
