@@ -12,7 +12,7 @@ import collections.abc
 
 
 def expand(func):
-    '''
+    """
     Decorator to expand an (args, kwargs) tuple in function calls
 
     Intended for use with the :py:func:`collapse` function
@@ -65,16 +65,17 @@ def expand(func):
         >>> list(map(my_func, func_calls))
         [1, 2, 36, 1728, 160000]
 
-    '''
+    """
 
     @functools.wraps(func)
     def inner(ak, *args, **kwargs):
         return func(*ak[0], *args, **ak[1], **kwargs)
+
     return inner
 
 
 def collapse(*args, **kwargs):
-    '''
+    """
     Collapse positional and keyword arguments into an (args, kwargs) tuple
 
     Intended for use with the :py:func:`expand` decorator
@@ -92,12 +93,12 @@ def collapse(*args, **kwargs):
         Positional arguments tuple
     kwargs : dict
         Keyword argument dictionary
-    '''
+    """
     return (args, kwargs)
 
 
 def collapse_product(*args, **kwargs):
-    '''
+    """
 
     Parameters
     ----------
@@ -148,22 +149,23 @@ def collapse_product(*args, **kwargs):
 
         >>> list(map(my_func, product_args))
         [1.0, 0.0, 1, 0, 1.0, 0.5, 1, 2, 1.0, 1.0, 1, 4]
-    '''
+    """
     num_args = len(args)
     kwarg_keys = list(kwargs.keys())
     kwarg_vals = [kwargs[k] for k in kwarg_keys]
 
     format_iterations = lambda x: (
         tuple(x[:num_args]),
-        dict(zip(kwarg_keys, x[num_args:])))
+        dict(zip(kwarg_keys, x[num_args:])),
+    )
 
     return map(format_iterations, itertools.product(*args, *kwarg_vals))
 
 
 class NumpyEncoder(json.JSONEncoder):
-    '''
+    """
     Helper class for json.dumps to coerce numpy objects to native python
-    '''
+    """
 
     def default(self, obj):
         if isinstance(obj, np.ndarray):
@@ -180,20 +182,21 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 def checkpoint(
-        jobs,
-        futures,
-        job_name,
-        log_dir='.',
-        extra_pending=None,
-        extra_errors=None,
-        extra_others=None):
-    '''
+    jobs,
+    futures,
+    job_name,
+    log_dir=".",
+    extra_pending=None,
+    extra_errors=None,
+    extra_others=None,
+):
+    """
     checkpoint and save a job state to disk
-    '''
+    """
 
-    err_msg = (
-        "lengths do not match: jobs [{}] != futures [{}]"
-        .format(len(jobs), len(futures)))
+    err_msg = "lengths do not match: jobs [{}] != futures [{}]".format(
+        len(jobs), len(futures)
+    )
 
     assert len(jobs) == len(futures), err_msg
 
@@ -206,18 +209,18 @@ def checkpoint(
     if extra_others is None:
         extra_others = {}
 
-    pending_jobs = (
-        [jobs[i] for i, f in enumerate(futures) if f.status == 'pending']
-        + extra_pending)
+    pending_jobs = [
+        jobs[i] for i, f in enumerate(futures) if f.status == "pending"
+    ] + extra_pending
 
-    errored_jobs = (
-        [jobs[i] for i, f in enumerate(futures) if f.status == 'error']
-        + extra_errors)
+    errored_jobs = [
+        jobs[i] for i, f in enumerate(futures) if f.status == "error"
+    ] + extra_errors
 
     other_jobs = {}
 
     for i, f in enumerate(futures):
-        if f.status in ['pending', 'error', 'finished']:
+        if f.status in ["pending", "error", "finished"]:
             continue
 
         if f.status not in other_jobs:
@@ -231,36 +234,36 @@ def checkpoint(
 
         other_jobs[k].append(v)
 
-    with open(os.path.join(log_dir, '{}.pending'.format(job_name)), 'w+') as f:
+    with open(os.path.join(log_dir, "{}.pending".format(job_name)), "w+") as f:
         f.write(json.dumps(pending_jobs, cls=NumpyEncoder))
 
-    with open(os.path.join(log_dir, '{}.err'.format(job_name)), 'w+') as f:
+    with open(os.path.join(log_dir, "{}.err".format(job_name)), "w+") as f:
         f.write(json.dumps(errored_jobs, cls=NumpyEncoder))
 
-    with open(os.path.join(log_dir, '{}.other'.format(job_name)), 'w+') as f:
+    with open(os.path.join(log_dir, "{}.other".format(job_name)), "w+") as f:
         f.write(json.dumps(other_jobs, cls=NumpyEncoder))
 
 
-def recover(job_name, log_dir='.'):
-    '''
+def recover(job_name, log_dir="."):
+    """
     recover pending, errored, other jobs from a checkpoint
-    '''
+    """
 
-    with open(os.path.join(log_dir, '{}.pending'.format(job_name)), 'r') as f:
+    with open(os.path.join(log_dir, "{}.pending".format(job_name)), "r") as f:
         content = f.read()
         if len(content) == 0:
             pending = {}
         else:
             pending = json.loads(content)
 
-    with open(os.path.join(log_dir, '{}.err'.format(job_name)), 'r') as f:
+    with open(os.path.join(log_dir, "{}.err".format(job_name)), "r") as f:
         content = f.read()
         if len(content) == 0:
             errored = {}
         else:
             errored = json.loads(content)
 
-    with open(os.path.join(log_dir, '{}.other'.format(job_name)), 'r') as f:
+    with open(os.path.join(log_dir, "{}.other".format(job_name)), "r") as f:
         content = f.read()
         if len(content) == 0:
             other = {}
@@ -281,17 +284,15 @@ class html(object):
 _default_allowed_types = (
     types.FunctionType,
     types.ModuleType,
-    (type if not hasattr(types, 'ClassType') else types.ClassType),
+    (type if not hasattr(types, "ClassType") else types.ClassType),
     types.MethodType,
     types.BuiltinMethodType,
-    types.BuiltinFunctionType
+    types.BuiltinFunctionType,
 )
 
 
 @toolz.functoolz.curry
-def block_globals(
-    obj, allowed_types=None, include_defaults=True, whitelist=None
-):
+def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None):
     """
     Decorator to prevent globals and undefined closures in functions and classes
 
@@ -390,9 +391,7 @@ def block_globals(
         if not isinstance(allowed_types, collections.abc.Sequence):
             allowed_types = [allowed_types]
 
-        allowed_types = (
-            tuple(list(allowed_types) + list(_default_allowed_types))
-        )
+        allowed_types = tuple(list(allowed_types) + list(_default_allowed_types))
 
     if whitelist is None:
         whitelist = []
@@ -405,12 +404,11 @@ def block_globals(
 
     closurevars = inspect.getclosurevars(obj)
     for instr in dis.get_instructions(obj):
-        if instr.opname == 'LOAD_GLOBAL':
+        if instr.opname == "LOAD_GLOBAL":
             if instr.argval in closurevars.builtins:
                 continue
-            elif (
-                (instr.argval in closurevars.globals)
-                or (instr.argval in closurevars.nonlocals)
+            elif (instr.argval in closurevars.globals) or (
+                instr.argval in closurevars.nonlocals
             ):
                 if instr.argval in whitelist:
                     continue
@@ -420,14 +418,13 @@ def block_globals(
                     g = closurevars.nonlocals[instr.argval]
                 if not isinstance(g, allowed_types):
                     raise TypeError(
-                        'Illegal {} global found in {}: {}'.format(
+                        "Illegal {} global found in {}: {}".format(
                             type(g), obj.__name__, instr.argval,
                         )
                     )
             else:
-                raise TypeError('Undefined global in {}: {}'.format(
-                        obj.__name__, instr.argval,
-                    )
+                raise TypeError(
+                    "Undefined global in {}: {}".format(obj.__name__, instr.argval,)
                 )
 
     @functools.wraps(obj)

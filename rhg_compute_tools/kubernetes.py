@@ -160,32 +160,35 @@ def get_cluster(
 
     with open(template_path, "r") as f:
         template = yml.load(f, Loader=yml.SafeLoader)
-    
+
     # update labels with default and user-provided labels
-    if ('metadata' not in template) or (template.get('metadata', {}) is None):
-        template['metadata'] = {}
+    if ("metadata" not in template) or (template.get("metadata", {}) is None):
+        template["metadata"] = {}
 
-    if ('labels' not in template['metadata']) or (template['metadata']['labels'] is None):
-        template['metadata']['labels'] = {}
+    if ("labels" not in template["metadata"]) or (
+        template["metadata"]["labels"] is None
+    ):
+        template["metadata"]["labels"] = {}
 
-    labels = template['metadata']['labels']
-    
+    labels = template["metadata"]["labels"]
+
     if extra_worker_labels is not None:
         labels.update(extra_worker_labels)
 
-    labels.update({
-        'jupyter_user': os.environ.get('JUPYTERHUB_USER', socket.gethostname())})
-        
-    template['metadata']['labels'] = labels
-    
-    if 'tolerations' not in template['spec']:
-        template['spec']['tolerations'] = []
-    
+    labels.update(
+        {"jupyter_user": os.environ.get("JUPYTERHUB_USER", socket.gethostname())}
+    )
+
+    template["metadata"]["labels"] = labels
+
+    if "tolerations" not in template["spec"]:
+        template["spec"]["tolerations"] = []
+
     if (extra_pod_tolerations is not None) and (len(extra_pod_tolerations) > 0):
         if keep_default_tolerations:
-            template['spec']['tolerations'].extend(extra_pod_tolerations)
+            template["spec"]["tolerations"].extend(extra_pod_tolerations)
         else:
-            template['spec']['tolerations'] = extra_pod_tolerations
+            template["spec"]["tolerations"] = extra_pod_tolerations
 
     container = template["spec"]["containers"][0]
 

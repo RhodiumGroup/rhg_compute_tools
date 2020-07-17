@@ -1,10 +1,7 @@
-
 from __future__ import absolute_import
 
 from rhg_compute_tools.design.colors import _load_colors
-from rhg_compute_tools.design.plotting import (
-    get_color_scheme,
-    add_colorbar)
+from rhg_compute_tools.design.plotting import get_color_scheme, add_colorbar
 
 _load_colors()
 
@@ -30,6 +27,7 @@ _load_colors()
 #     fm.findfont(sysfont, fontext=ext, rebuild_if_missing=False)
 
 from matplotlib.font_manager import _rebuild
+
 _rebuild()
 
-__all__ = ['get_color_scheme', 'add_colorbar']
+__all__ = ["get_color_scheme", "add_colorbar"]

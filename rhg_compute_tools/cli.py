@@ -1,11 +1,11 @@
 import click
-from rhg_compute_tools.gcs import (replicate_directory_structure_on_gcs,
-                                   authenticated_client)
-
-
-@click.group(
-    context_settings={'help_option_names': ['-h', '--help']}
+from rhg_compute_tools.gcs import (
+    replicate_directory_structure_on_gcs,
+    authenticated_client,
 )
+
+
+@click.group(context_settings={"help_option_names": ["-h", "--help"]})
 def rctools_cli():
     """Rhodium Compute Tools"""
     pass
@@ -19,10 +19,14 @@ def gcs():
 
 
 @gcs.command()
-@click.argument('src', type=click.Path(exists=True))
-@click.argument('dst', type=click.Path())
-@click.option('-c', '--credentials', type=click.Path(exists=True),
-              help='Optional path to GCS credentials file.')
+@click.argument("src", type=click.Path(exists=True))
+@click.argument("dst", type=click.Path())
+@click.option(
+    "-c",
+    "--credentials",
+    type=click.Path(exists=True),
+    help="Optional path to GCS credentials file.",
+)
 def repdirstruc(src, dst, credentials):
     """Replicate directory structure onto GCS bucket.
 
