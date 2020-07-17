@@ -110,7 +110,7 @@ def get_cluster(
     deploy_mode : str, optional
         Where to deploy the scheduler (on the same pod or a different pod)
     idle_timeout : str, optional
-        Number of seconds without active ommunication with the client before the
+        Number of seconds without active communication with the client before the
         remote scheduler shuts down (ignored if ``deploy_mode=='local'``).
         Default is to not shut down for this reason.
     template_path : str, optional
