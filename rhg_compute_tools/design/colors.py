@@ -1,7 +1,8 @@
 import os
-import numpy as np
+
 import matplotlib.cm
 import matplotlib.style
+import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 
 RHG_COLOR_GRID = np.array(

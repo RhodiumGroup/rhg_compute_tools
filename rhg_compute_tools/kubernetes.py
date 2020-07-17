@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """Tools for interacting with kubernetes."""
 
-from dask_kubernetes import KubeCluster
-import dask
-import dask.distributed as dd
-import yaml as yml
-import traceback as tb
 import os
 import socket
-import numpy as np
-from collections import Sequence
+import traceback as tb
 import warnings
+from collections import Sequence
+
+import dask
+import numpy as np
+import yaml as yml
+from dask import distributed as dd
+from dask_kubernetes import KubeCluster
 
 
 def traceback(ftr):

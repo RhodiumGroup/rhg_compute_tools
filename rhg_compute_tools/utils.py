@@ -1,14 +1,14 @@
+import collections.abc
+import dis
 import functools
+import inspect
 import itertools
 import json
-import numpy as np
 import os
-
-import dis
-import toolz
-import inspect
 import types
-import collections.abc
+
+import numpy as np
+import toolz
 
 
 def expand(func):
