@@ -10,6 +10,7 @@ import os
 import socket
 import numpy as np
 from collections import Sequence
+import warnings
 
 
 def traceback(ftr):
@@ -108,7 +109,7 @@ def get_cluster(
     deploy_mode : str, optional
         Where to deploy the scheduler (on the same pod or a different pod)
     idle_timeout : str, optional
-        Number of seconds without active ommunication with the client before the 
+        Number of seconds without active ommunication with the client before the
         remote scheduler shuts down (ignored if ``deploy_mode=='local'``).
         Default is to not shut down for this reason.
     template_path : str, optional
@@ -121,12 +122,23 @@ def get_cluster(
     extra_pod_tolerations : list of dict, optional
         List of pod toleration dictionaries. For example, to match a node pool
         NoSchedule toleration, you might provide:
-        
+
         .. code-block:: python
 
             extra_pod_tolerations=[
-                {"effect": "NoSchedule", "key": "k8s.dask.org_dedicated", "operator": "Equal", "value": "worker-highcpu"},
-                {"effect": "NoSchedule", "key": "k8s.dask.org/dedicated", "operator": "Equal", "value": "worker-highcpu"}]
+                {
+                    "effect": "NoSchedule",
+                    "key": "k8s.dask.org_dedicated",
+                    "operator": "Equal",
+                    "value": "worker-highcpu"
+                },
+                {
+                    "effect": "NoSchedule",
+                    "key": "k8s.dask.org/dedicated",
+                    "operator": "Equal",
+                    "value": "worker-highcpu"
+                }
+            ]
 
     keep_default_tolerations : bool, optional
         Whether to append (default) or replace the default tolerations. Ignored if
