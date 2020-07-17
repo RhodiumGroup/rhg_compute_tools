@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from rhg_compute_tools.design.colors import _load_colors
-from rhg_compute_tools.design.plotting import get_color_scheme, add_colorbar
+from rhg_compute_tools.design.plotting import add_colorbar, get_color_scheme
 
 _load_colors()
 

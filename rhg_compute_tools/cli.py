@@ -1,7 +1,8 @@
 import click
+
 from rhg_compute_tools.gcs import (
-    replicate_directory_structure_on_gcs,
     authenticated_client,
+    replicate_directory_structure_on_gcs,
 )
 
 

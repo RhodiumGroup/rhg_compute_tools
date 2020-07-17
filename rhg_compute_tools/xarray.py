@@ -1,6 +1,6 @@
-import xarray as xr
 import dask.array
-import dask.distributed as dd
+import xarray as xr
+from dask import distributed as dd
 
 
 def dataarrays_from_delayed(futures, client=None):
@@ -341,9 +341,10 @@ def dataset_from_delayed(futures, dim=None, client=None):
     return ds
 
 
+import functools
+
 import numpy as np
 import xarray as xr
-import functools
 
 
 def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):

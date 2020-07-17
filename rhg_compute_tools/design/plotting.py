@@ -1,6 +1,6 @@
 import matplotlib.cm
-from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
 
 try:
     _string_types = (str, unicode)

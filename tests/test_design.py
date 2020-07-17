@@ -1,5 +1,6 @@
-import pytest
 import os
+
+import pytest
 
 import rhg_compute_tools
 
@@ -12,9 +13,10 @@ styles = [
 
 
 def test_imports():
-    import rhg_compute_tools.design
     import matplotlib.cm
     import matplotlib.colors
+
+    import rhg_compute_tools.design
 
     assert isinstance(
         matplotlib.cm.get_cmap("rhg_Blues"), matplotlib.colors.LinearSegmentedColormap

@@ -1,5 +1,6 @@
-import pytest
 import click
+import pytest
+
 import rhg_compute_tools.cli
 
 
