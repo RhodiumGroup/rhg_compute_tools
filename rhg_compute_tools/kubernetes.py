@@ -83,15 +83,15 @@ def get_cluster(
         ``cred_path='/opt/gcsfuse_tokens/{}.json'.format(cred_name)``
     cred_path : str, optional
         Path to Google Cloud credentials file to use.
-    env_items : list of dict, optional
-        A list of env variable 'name'-'value' pairs to append to the env
+    env_items : dict, optional
+        A dictionary of env variable 'name'-'value' pairs to append to the env
         variables included in ``template_path``, e.g.
 
         .. code-block:: python
 
-            [{
-                'name': 'GOOGLE_APPLICATION_CREDENTIALS',
-                'value': '/opt/gcsfuse_tokens/rhg-data.json'}])
+            {
+                'GOOGLE_APPLICATION_CREDENTIALS': '/opt/gcsfuse_tokens/rhg-data.json',
+            }
 
     scaling_factor : float, optional
         scale the worker memory & CPU size using a constant multiplier of the
@@ -223,10 +223,10 @@ def get_cluster(
         if isinstance(env_items, dict):
             [
                 container["env"].append({"name": k, "value": v})
-                for k, v in env_items.values()
+                for k, v in env_items.items()
             ]
         # allow deprecated passing of list of name/value pairs
-        elif isintance(env_items, Sequence):
+        elif isinstance(env_items, Sequence):
             warnings.warn(
                 "Passing of list of name/value pairs deprecated. "
                 "Please pass a dictionary instead."
