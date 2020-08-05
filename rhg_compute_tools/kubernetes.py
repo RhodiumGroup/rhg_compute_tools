@@ -36,6 +36,7 @@ def _append_docstring(func_with_docstring):
 
 def get_cluster(
     name=None,
+    tag=None,
     extra_pip_packages=None,
     extra_conda_packages=None,
     memory_gb=None,
@@ -63,8 +64,14 @@ def get_cluster(
     Parameters
     ----------
     name : str, optional
-        Name of worker image to use. If None, default to worker specified in
-        ``template_path``.
+        Name of worker image to use (e.g. ``rhodium/worker:latest``). If ``None``
+        (default), default to worker specified in ``template_path``.
+    tag : str, optional
+        Tag of the worker image to use. Cannot be used in combination with
+        ``name``, which should include a tag. If provided, overrides the
+        tag of the image specified in ``template_path``. If ``None``
+        (default), the full image specified in ``name`` or ``template_path``
+        is used.
     extra_pip_packages : str, optional
         Extra pip packages to install on worker. Packages are installed
         using ``pip install extra_pip_packages``.
@@ -165,6 +172,9 @@ def get_cluster(
         A cluster with workers four times the size of the default
 
     """
+    
+    if (name is not None) and (tag is not None):
+        raise ValueError("provide either `name` or `tag`, not both")
 
     # update dask settings
     dask.config.set(dask_config_dict)
@@ -208,6 +218,17 @@ def get_cluster(
     # replace the defualt image with the new one
     if name is not None:
         container["image"] = name
+
+    if tag is not None:
+        container["image"] = re.sub(
+            (
+                r"^(([a-zA-Z0-9_\-\.]+(:[a-zA-Z0-9_\-\.]+)?/)?[a-zA-Z0-9_\-\.]+(/[a-zA-Z0-9_\-\.]+)*)"
+                r"(:[^/]+(@.*)?)?"
+                r"$"
+            ),
+            r"\1",
+            image
+        ) + tag
 
     if extra_pip_packages is not None:
         container["env"].append(
