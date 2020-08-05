@@ -8,6 +8,7 @@ v0.2.3
 ------
 * Make the gsutil API consistent, so that we have `cp`, `sync` and `rm`, each of which
   accept the same args and kwargs (:issue:`69`)
+* Swap ``bumpversion`` for ``setuptools_scm`` to handle versioning (:issue:`78`)
 
 v0.2.2
 ------
