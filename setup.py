@@ -21,6 +21,7 @@ requirements = [
 
 setup_requirements = [
     "pytest-runner",
+    "setuptools_scm",
     # TODO(delgadom): put setup requirements (distutils extensions, etc.) here
 ]
 
@@ -31,7 +32,7 @@ test_requirements = [
 
 setup(
     name="rhg_compute_tools",
-    version="0.2.2",
+    use_scm_version=True,
     description="Tools for using compute.rhg.com and compute.impactlab.org",
     long_description=readme + "\n\n" + history,
     long_description_content_type="text/x-rst",
