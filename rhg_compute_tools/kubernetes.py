@@ -227,7 +227,7 @@ def get_cluster(
                 r"$"
             ),
             r"\1",
-            name
+            container["image"],
         ) + tag
 
     if extra_pip_packages is not None:
