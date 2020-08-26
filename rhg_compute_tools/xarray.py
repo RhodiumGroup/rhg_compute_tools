@@ -1,4 +1,7 @@
+import functools
+
 import dask.array
+import numpy as np
 import xarray as xr
 from dask import distributed as dd
 
@@ -75,9 +78,16 @@ def dataarrays_from_delayed(futures, client=None):
         for i in range(len(futures))
     ]
 
+    # using dict(x.coords) b/c gathering coords can blow up memory for some reason
     array_metadata = client.gather(
         client.map(
-            lambda x: {"dims": x.dims, "coords": x.coords, "attrs": x.attrs}, futures
+            lambda x: {
+                "dims": x.dims,
+                "coords": dict(x.coords),
+                "attrs": x.attrs,
+                "name": x.name,
+            },
+            futures,
         )
     )
 
@@ -248,12 +258,13 @@ def datasets_from_delayed(futures, client=None):
         for i in range(len(futures))
     ]
 
+    # using dict(x.coords) b/c gathering coords can blow up memory for some reason
     array_metadata = [
         {
             k: client.submit(
                 lambda x: {
                     "dims": x[k].dims,
-                    "coords": x[k].coords,
+                    "coords": dict(x[k].coords),
                     "attrs": x[k].attrs,
                 },
                 futures[i],
@@ -339,12 +350,6 @@ def dataset_from_delayed(futures, dim=None, client=None):
     ds = xr.concat(datasets, dim=dim)
 
     return ds
-
-
-import functools
-
-import numpy as np
-import xarray as xr
 
 
 def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
