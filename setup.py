@@ -41,7 +41,9 @@ setup(
     url="https://github.com/RhodiumGroup/rhg_compute_tools",
     packages=find_packages(include=["rhg_compute_tools"]),
     include_package_data=True,
-    package_data={"rhg_compute_tools": ["*.mplstyle"],},
+    package_data={
+        "rhg_compute_tools": ["*.mplstyle"],
+    },
     install_requires=requirements,
     license="MIT license",
     zip_safe=False,
@@ -58,5 +60,9 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     setup_requires=setup_requirements,
-    entry_points={"console_scripts": ["rctools = rhg_compute_tools.cli:rctools_cli",]},
+    entry_points={
+        "console_scripts": [
+            "rctools = rhg_compute_tools.cli:rctools_cli",
+        ]
+    },
 )

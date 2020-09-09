@@ -419,12 +419,17 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
                 if not isinstance(g, allowed_types):
                     raise TypeError(
                         "Illegal {} global found in {}: {}".format(
-                            type(g), obj.__name__, instr.argval,
+                            type(g),
+                            obj.__name__,
+                            instr.argval,
                         )
                     )
             else:
                 raise TypeError(
-                    "Undefined global in {}: {}".format(obj.__name__, instr.argval,)
+                    "Undefined global in {}: {}".format(
+                        obj.__name__,
+                        instr.argval,
+                    )
                 )
 
     @functools.wraps(obj)

@@ -19,8 +19,7 @@ def test_repdirstruc(
     tempfl_path,
     monkeypatch,
 ):
-    """Test rctools gcs repdirstruc for main input options
-    """
+    """Test rctools gcs repdirstruc for main input options"""
     # Setup CLI args
     cred_path = str(tempfl_path)
     credargs = [credflag, cred_path]
@@ -46,8 +45,7 @@ def test_repdirstruc(
 def test_repdirstruc_nocredfile(
     credflag, replicate_directory_structure_on_gcs_stub, tmpdir, monkeypatch
 ):
-    """Test rctools gcs repdirstruc for graceful fail when cred file missing
-    """
+    """Test rctools gcs repdirstruc for graceful fail when cred file missing"""
     # Setup CLI args
     cred_path = "_foobar.json"
     credargs = [credflag, cred_path]

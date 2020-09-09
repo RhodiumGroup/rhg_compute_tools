@@ -14,8 +14,7 @@ def rctools_cli():
 
 @rctools_cli.group()
 def gcs():
-    """Tools for interacting with Google Cloud Storage
-    """
+    """Tools for interacting with Google Cloud Storage"""
     pass
 
 
