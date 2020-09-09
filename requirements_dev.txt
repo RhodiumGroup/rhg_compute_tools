@@ -11,3 +11,4 @@ pytest-mock
 twine
 dask-gateway
 dask-gateway-server[local]
+ruamel.yaml

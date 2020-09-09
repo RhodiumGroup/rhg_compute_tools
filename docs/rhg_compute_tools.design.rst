@@ -20,7 +20,6 @@ rhg\_compute\_tools.design.plotting module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

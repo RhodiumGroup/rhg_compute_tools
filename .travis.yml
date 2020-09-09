@@ -41,6 +41,9 @@ jobs:
   allow_failures:
     - python: 3.8
 script:
+- dask-gateway-server generate-config
+- python tests/set_gateway_config.py
+- dask-gateway-server -f dask_gateway_config.py &
 - pytest
 - rm -f docs/rhg_compute_tools.*.rst
 - sphinx-apidoc -o docs rhg_compute_tools
