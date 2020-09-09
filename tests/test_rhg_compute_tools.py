@@ -6,6 +6,14 @@
 import pytest
 
 from rhg_compute_tools import kubernetes
+from dask_gateway import Gateway
+
+        
+class LocalGateway(Gateway):
+    def __init__(self):
+        # initialize local gateway
+        super().__init__("http://127.0.0.1:8000")
+        
 
 
 def monkeypatch_cluster(func):
@@ -19,6 +27,10 @@ def monkeypatch_cluster(func):
         monkeypatch.setattr(
             "dask_kubernetes.KubeCluster.from_dict", mock_KubeCluster_from_dict
         )
+        
+        monkeypatch.setattr(
+            "dask_gateway.Gateway", LocalGateway
+        )
 
         monkeypatch.setattr("dask.distributed.Client", mock_dask_Client)
 
@@ -29,9 +41,9 @@ def monkeypatch_cluster(func):
 
 @pytest.mark.parametrize("mem,cpu,scale", [(None, None, None)])
 @monkeypatch_cluster
-def test_create_worker(mem=None, cpu=None, scale=None):
+def test_create_worker_kube(mem=None, cpu=None, scale=None):
 
-    cluster, client = kubernetes.get_cluster(
+    client, cluster = kubernetes._get_cluster_dask_kubernetes(
         template_path="tests/resources/worker_template.yml"
     )
 
@@ -47,14 +59,30 @@ def test_create_worker(mem=None, cpu=None, scale=None):
     assert res_req["cpu"] == "1.75", res_req["cpu"]
 
 
+@pytest.mark.parametrize("mem,cpu,scale", [(None, None, None)])
+@monkeypatch_cluster
+def test_create_worker_gateway(mem=None, cpu=None, scale=None):
+
+    client, cluster = kubernetes._get_cluster_dask_gateway(
+        name="test-image",
+        profile="small",
+        cred_path="path/to/test_cred.json"
+    )
+
+    assert cluster.worker_image == "test-image"
+    assert cluster.scheduler_image == "rhodium/scheduler:latest"
+    assert cluster.profile == "small"
+    assert cluster.cred_name == "test_cred"
+
+
 size_test_params = [(35, 7, None), (1, 6, None), (4, 1, None)]
 
 
 @pytest.mark.parametrize("mem,cpu,scale", size_test_params)
 @monkeypatch_cluster
-def test_size_worker(mem, cpu, scale):
+def test_size_worker_kube(mem, cpu, scale):
 
-    cluster, client = kubernetes.get_cluster(
+    client, cluster = kubernetes._get_cluster_dask_kubernetes(
         template_path="tests/resources/worker_template.yml", memory_gb=mem, cpus=cpu
     )
 
@@ -82,9 +110,9 @@ scale_test_params = [
 
 @pytest.mark.parametrize("mem,cpu,scale", scale_test_params)
 @monkeypatch_cluster
-def test_scale_worker(mem, cpu, scale):
+def test_scale_worker_kube(mem, cpu, scale):
 
-    cluster, client = kubernetes.get_cluster(
+    client, cluster = kubernetes._get_cluster_dask_kubernetes(
         template_path="tests/resources/worker_template.yml", scaling_factor=scale
     )
 
@@ -100,3 +128,22 @@ def test_scale_worker(mem, cpu, scale):
     mem_val = float(res_req["memory"].strip("G"))
     assert abs(mem_val - (scale * 11.5)) < 0.01, res_req["memory"]
     assert abs(float(res_req["cpu"]) - (scale * 1.75)) < 0.01, res_req["cpu"]
+
+    
+scale_test_params = [
+    (None, None, "micro"),
+    (None, None, "standard"),
+    (None, None, "big"),
+    (None, None, "giant"),
+]
+
+
+@pytest.mark.parametrize("mem,cpu,scale", scale_test_params)
+@monkeypatch_cluster
+def test_scale_worker_gateway(mem, cpu, scale):
+
+    client, cluster = kubernetes._get_cluster_dask_gateway(
+        profile=scale
+    )
+    
+    assert cluster.profile == scale

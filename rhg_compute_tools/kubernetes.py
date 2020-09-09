@@ -144,25 +144,29 @@ def _get_cluster_dask_gateway(**kwargs):
     
     gateway = dask_gateway.Gateway()
     default_options = gateway.cluster_options()
+    
+    new_kwargs = kwargs.copy()
+    
     # handle naming changes
     for k,v in kwargs.items():
-        if k == "worker_image":
-            k["name"] = kwargs.pop("worker_image")
-        if k == "cred_path":
+        if k == "name":
+            new_kwargs["worker_image"] = kwargs["name"]
+            del new_kwargs["name"]
+        elif k == "cred_path":
             if "cred_name" not in kwargs.keys():
-                k["cred_name"] = Path(v).stem
-            del kwargs[k]
-        if k == "extra_pod_tolerations":
+                new_kwargs["cred_name"] = Path(v).stem
+            del new_kwargs["cred_path"]
+        elif k == "extra_pod_tolerations":
             if "keep_default_tolerations" in kwargs.keys() and kwargs["keep_default_tolerations"] == False:
                 base_tols = {}
             else:
                 base_tols = default_options.worker_tolerations
-            del kwargs["keep_default_tolerations"]
-            k["worker_tolerations"] = {f"user_{key}":val for key,val in enumerate(kwargs.pop("extra_pod_tolerations"))}
+            new_kwargs.pop("keep_default_tolerations", None)
+            new_kwargs["worker_tolerations"] = {f"user_{key}":val for key,val in enumerate(new_kwargs.pop("extra_pod_tolerations"))}
         elif k not in GATEWAY_OPTIONS:
             raise KeyError(f"{k} not allowed as a kwarg when using dask-gateway")
             
-    cluster = gateway.new_cluster(**kwargs)
+    cluster = gateway.new_cluster(**new_kwargs)
     client = cluster.get_client()
     
     return client, cluster
