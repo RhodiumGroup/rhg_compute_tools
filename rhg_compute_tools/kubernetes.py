@@ -64,8 +64,9 @@ def _get_cluster_dask_gateway(**kwargs):
     """
     Start dask.kubernetes cluster and dask.distributed client
 
-    All arguments are optional. If not provided, arguments will default to
-    values provided in ``template_path``.
+    All arguments are optional. If not provided, defaults will be used. To view
+    defaults, instantiate a :class:`dask_gateway.Gateway` object and call 
+    `gateway.cluster_options()`.
 
     Parameters
     ----------
