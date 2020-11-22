@@ -374,6 +374,8 @@ def wait(cluster, min_workers=None, pbar=True, pbar_kwargs=None):
     """
 
     if min_workers is None:
+        # don't race the cluster
+        time.sleep(0.5)
         min_workers = len(cluster.requested)
         
     if pbar_kwargs is None:
