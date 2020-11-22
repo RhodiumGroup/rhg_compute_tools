@@ -9,3 +9,4 @@ pytest-cov
 pytest-runner
 pytest-mock
 twine
+tqdm
