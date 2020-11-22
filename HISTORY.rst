@@ -2,7 +2,11 @@
 History
 =======
 
-.. current developments
+Latest
+------
+
+* Add :py:func:`rhg_compute_tools.kubernetes.wait` function to block until cluster reaches
+  the requested number of workers, optionally with a tqdm pbar.
 
 v0.2.3
 ------
