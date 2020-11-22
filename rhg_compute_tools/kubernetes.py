@@ -396,6 +396,9 @@ def wait(cluster, min_workers=None, pbar=True, pbar_kwargs=None):
             bar.refresh()
 
         if num_workers >= min_workers:
+            if pbar:            
+                bar.close()
+
             break
 
         time.sleep(0.5)
