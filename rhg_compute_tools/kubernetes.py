@@ -371,27 +371,27 @@ def wait(cluster, min_workers=None, pbar=True, pbar_kwargs=None):
         :py:func:`tqdm.auto.tqdm` (default ``{}``).
     """
 
-    if min_workes is None:
-        min_workes = len(cluster.requested)
+    if min_workers is None:
+        min_workers = len(cluster.requested)
         
     if pbar_kwargs is None:
         pbar_kwargs = {}
 
     if pbar:
         from tqdm.auto import tqdm
-        bar = tqdm(total=min_workes, **pbar_kwargs)
+        bar = tqdm(total=min_workers, **pbar_kwargs)
 
     while True:
         num_workers = len(cluster.scheduler.workers)
         
         # check to see if the request has decreased, e.g. in an adaptive cluster
-        min_workes = min(min_workers, len(cluster.requested))
+        min_workers = min(min_workers, len(cluster.requested))
 
         if pbar:
             bar.n = num_workers
             bar.refresh()
 
-        if num_workers >= min_workes:
+        if num_workers >= min_workers:
             break
 
         time.sleep(0.5)
