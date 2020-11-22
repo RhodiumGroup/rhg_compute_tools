@@ -348,9 +348,11 @@ def wait(cluster, min_workers=None, pbar=True, pbar_kwargs=None):
     """
     Block execution while a cluster scales to the requested number of workers
     
+    Note that this function does not currently work on dask gateway clusters
+    
     Parameters
     ----------
-    cluster : dask_kubernetes.KubeCluster or dask_gateway.GatewayCluster
+    cluster : dask_kubernetes.KubeCluster
         Scalable dask cluster object with ``requested`` and ``scheduler``
         attributes. These attributes are used to determine how many
         workers have been requested and how many are currently available.
