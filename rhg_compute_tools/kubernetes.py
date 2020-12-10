@@ -2,6 +2,7 @@
 """Tools for interacting with kubernetes."""
 
 import os
+import re
 import socket
 import traceback as tb
 import warnings
@@ -71,8 +72,14 @@ def _get_cluster_dask_gateway(**kwargs):
     Parameters
     ----------
     name : str, optional
-        Name of worker image to use. If None, default to worker specified in
-        ``template_path``.
+        Name of worker image to use (e.g. ``rhodium/worker:latest``). If ``None``
+        (default), default to worker specified in ``template_path``.
+    tag : str, optional
+        Tag of the worker image to use. Cannot be used in combination with
+        ``name``, which should include a tag. If provided, overrides the
+        tag of the image specified in ``template_path``. If ``None``
+        (default), the full image specified in ``name`` or ``template_path``
+        is used.
     extra_pip_packages : str, optional
         Extra pip packages to install on worker. Packages are installed
         using ``pip install extra_pip_packages``.
@@ -177,8 +184,15 @@ def _get_cluster_dask_gateway(**kwargs):
                     for key, val in enumerate(new_kwargs.pop("extra_pod_tolerations"))
                 },
             }
-        elif k not in GATEWAY_OPTIONS:
+        elif k not in GATEWAY_OPTIONS + ["tag"]:
             raise KeyError(f"{k} not allowed as a kwarg when using dask-gateway")
+
+    if "worker_image" in new_kwargs and "tag" in new_kwargs:
+        raise ValueError("provide either `name` or `tag`, not both")
+
+    if "tag" in new_kwargs:
+        img, _ = default_options.worker_image.split(":")
+        new_kwargs["worker_image"] = ":".join(img, new_kwargs["tag"])
 
     cluster = gateway.new_cluster(**new_kwargs)
     client = cluster.get_client()
@@ -188,6 +202,7 @@ def _get_cluster_dask_gateway(**kwargs):
 
 def _get_cluster_dask_kubernetes(
     name=None,
+    tag=None,
     extra_pip_packages=None,
     extra_conda_packages=None,
     memory_gb=None,
@@ -215,8 +230,14 @@ def _get_cluster_dask_kubernetes(
     Parameters
     ----------
     name : str, optional
-        Name of worker image to use. If None, default to worker specified in
-        ``template_path``.
+        Name of worker image to use (e.g. ``rhodium/worker:latest``). If ``None``
+        (default), default to worker specified in ``template_path``.
+    tag : str, optional
+        Tag of the worker image to use. Cannot be used in combination with
+        ``name``, which should include a tag. If provided, overrides the
+        tag of the image specified in ``template_path``. If ``None``
+        (default), the full image specified in ``name`` or ``template_path``
+        is used.
     extra_pip_packages : str, optional
         Extra pip packages to install on worker. Packages are installed
         using ``pip install extra_pip_packages``.
@@ -318,6 +339,9 @@ def _get_cluster_dask_kubernetes(
 
     """
 
+    if (name is not None) and (tag is not None):
+        raise ValueError("provide either `name` or `tag`, not both")
+
     # update dask settings
     dask.config.set(dask_config_dict)
 
@@ -360,6 +384,9 @@ def _get_cluster_dask_kubernetes(
     # replace the defualt image with the new one
     if name is not None:
         container["image"] = name
+    if tag is not None:
+        img, _ = container["image"].split(":")
+        container["image"] = ":".join(img, tag)
 
     if extra_pip_packages is not None:
         container["env"].append(
