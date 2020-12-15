@@ -24,18 +24,6 @@ try:
 except ModuleNotFoundError:
     pass
 
-GATEWAY_OPTIONS = [
-    "profile",
-    "worker_image",
-    "scheduler_image",
-    "extra_pip_packages",
-    "gcsfuse_tokens",
-    "cred_name",
-    "worker_tolerations",
-    "extra_worker_labels",
-    "env_items",
-]
-
 
 def traceback(ftr):
     return tb.print_exception(type(ftr.exception()), ftr.exception(), ftr.traceback())
@@ -87,6 +75,12 @@ def _get_cluster_dask_gateway(**kwargs):
         Determines size of worker. CPUs assigned are slightly under 1, 2, 4, and 8,
         respectively. Memory assigned is slightly over 6, 12, 24, and 48 GB,
         respectively.
+    worker_cores : int, optional
+        Override the CPUs requested for your workers as defined by ``profile``. Use 
+        whole numbers of CPUs. They will be adjusted down slightly to request a smaller
+        amount of vCPUs in order to pack workers into 8-core nodes with some 
+        kubernetes overhead. (NOTE 12/15/20: This is currently useful when mapping big
+        workflows across inputs, see https://github.com/dask/dask-gateway/issues/364).
     cred_name : str, optional
         Name of Google Cloud credentials file to use, equivalent to providing
         ``cred_path='/opt/gcsfuse_tokens/{}.json'.format(cred_name)``. May not use
@@ -184,7 +178,7 @@ def _get_cluster_dask_gateway(**kwargs):
                     for key, val in enumerate(new_kwargs.pop("extra_pod_tolerations"))
                 },
             }
-        elif k not in GATEWAY_OPTIONS + ["tag"]:
+        elif k not in default_options.keys() + ["tag"]:
             raise KeyError(f"{k} not allowed as a kwarg when using dask-gateway")
 
     if "worker_image" in new_kwargs and "tag" in new_kwargs:
@@ -222,6 +216,10 @@ def _get_cluster_dask_kubernetes(
     **kwargs,
 ):
     """
+
+    **DEPRECATED (12/15/2020) **: Since we no longer maintain clusters using 
+    dask-kubernetes schedulers. Only dask-gateway is now supported.
+
     Start dask.kubernetes cluster and dask.distributed client
 
     All arguments are optional. If not provided, arguments will default to
