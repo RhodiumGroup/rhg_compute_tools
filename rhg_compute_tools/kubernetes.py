@@ -75,11 +75,12 @@ def _get_cluster_dask_gateway(**kwargs):
         Determines size of worker. CPUs assigned are slightly under 1, 2, 4, and 8,
         respectively. Memory assigned is slightly over 6, 12, 24, and 48 GB,
         respectively.
-    worker_cores : float, optional
-        Override the CPUs requested for your workers as defined by ``profile``. Will 
+    cpus : float, optional
+        Set the CPUs requested for your workers as defined by ``profile``. Will 
         raise error if >7.5, because our 8-CPU nodes need ~.5 vCPU for kubernetes pods.
-        (NOTE 12/15/20: This is currently useful when mapping big workflows across
-        inputs, see https://github.com/dask/dask-gateway/issues/364).
+        (NOTE 12/15/20: This is currently set to 1 by default to allow for mapping
+        big workflows across inputs, see 
+        https://github.com/dask/dask-gateway/issues/364).
     cred_name : str, optional
         Name of Google Cloud credentials file to use, equivalent to providing
         ``cred_path='/opt/gcsfuse_tokens/{}.json'.format(cred_name)``. May not use
@@ -152,8 +153,8 @@ def _get_cluster_dask_gateway(**kwargs):
 
     new_kwargs = kwargs.copy()
 
-    if new_kwargs.get("worker_cores",0) > 7.5:
-        raise ValueError("Must specify ``worker_cores`` <= 7.5")
+    if new_kwargs.get("cpus",0) > 7.5:
+        raise ValueError("Must specify ``cpus`` <= 7.5")
 
     # handle naming changes
     for k, v in kwargs.items():
