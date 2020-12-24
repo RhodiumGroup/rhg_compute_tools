@@ -18,8 +18,8 @@ jobs:
         python-version: '3.8'
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip flake8 pytest
-        pip install .
+        python -m pip install --upgrade pip flake8
+        python setup.py test
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -28,4 +28,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
+        dask-gateway-server generate-config
+        python tests/set_gateway_config.py
+        dask-gateway-server -f dask_gateway_config.py &
         pytest
