@@ -5,7 +5,7 @@ import os
 import socket
 import traceback as tb
 import warnings
-from collections import Sequence
+from collections.abc import Sequence
 from pathlib import Path
 
 import dask
