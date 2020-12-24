@@ -1,0 +1,26 @@
+# core packages
+google-cloud-storage
+click
+dask-gateway
+pandas
+xarray
+matplotlib
+numpy
+bottleneck
+
+# testing packages
+pytest
+wheel
+flake8
+tox
+coverage
+Sphinx
+pyyaml
+pytest-cov
+pytest-runner
+pytest-mock
+twine
+dask-gateway-server[local]
+ruamel.yaml
+
+# setuptools_scm

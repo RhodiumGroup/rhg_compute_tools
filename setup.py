@@ -25,28 +25,6 @@ requirements = [
     # TODO: put package requirements here
 ]
 
-setup_requirements = [
-    "setuptools_scm",
-    # TODO(delgadom): put setup requirements (distutils extensions, etc.) here
-]
-
-test_requirements = [
-    "pytest",
-    "wheel",
-    "flake8",
-    "tox",
-    "coverage",
-    "Sphinx",
-    "pyyaml",
-    "pytest-cov",
-    "pytest-runner",
-    "pytest-mock",
-    "twine",
-    "dask-gateway-server[local]",
-    "ruamel.yaml",
-    # TODO: put package test requirements here
-]
-
 setup(
     name="rhg_compute_tools",
     use_scm_version=True,
@@ -74,9 +52,6 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    test_suite="tests",
-    tests_require=test_requirements,
-    setup_requires=setup_requirements,
     entry_points={
         "console_scripts": [
             "rctools = rhg_compute_tools.cli:rctools_cli",
