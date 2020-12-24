@@ -52,7 +52,7 @@ def _get_cluster_dask_gateway(**kwargs):
     Start dask.kubernetes cluster and dask.distributed client
 
     All arguments are optional. If not provided, defaults will be used. To view
-    defaults, instantiate a :class:`dask_gateway.Gateway` object and call 
+    defaults, instantiate a :class:`dask_gateway.Gateway` object and call
     `gateway.cluster_options()`.
 
     Parameters
@@ -74,10 +74,10 @@ def _get_cluster_dask_gateway(**kwargs):
         respectively. Memory assigned is slightly over 6, 12, 24, and 48 GB,
         respectively.
     cpus : float, optional
-        Set the CPUs requested for your workers as defined by ``profile``. Will 
+        Set the CPUs requested for your workers as defined by ``profile``. Will
         raise error if >7.5, because our 8-CPU nodes need ~.5 vCPU for kubernetes pods.
         (NOTE 12/15/20: This is currently set to 1 by default to allow for mapping
-        big workflows across inputs, see 
+        big workflows across inputs, see
         https://github.com/dask/dask-gateway/issues/364).
     cred_name : str, optional
         Name of Google Cloud credentials file to use, equivalent to providing
@@ -151,8 +151,8 @@ def _get_cluster_dask_gateway(**kwargs):
 
     new_kwargs = kwargs.copy()
 
-    if new_kwargs.get("cpus",0) > 7.5:
-        raise ValueError("Must specify ``cpus`` <= 7.5")
+    if new_kwargs.get("cpus", 0) > 7.25:
+        raise ValueError("Must specify ``cpus`` <= 7.25")
 
     # handle naming changes
     for k, v in kwargs.items():
@@ -218,7 +218,7 @@ def _get_cluster_dask_kubernetes(
 ):
     """
 
-    **DEPRECATED (12/15/2020) **: Since we no longer maintain clusters using 
+    **DEPRECATED (12/15/2020) **: Since we no longer maintain clusters using
     dask-kubernetes schedulers. Only dask-gateway is now supported.
 
     Start dask.kubernetes cluster and dask.distributed client
