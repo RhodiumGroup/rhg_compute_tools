@@ -304,6 +304,5 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/2.7", None),
     "xarray": ("http://xarray.pydata.org/en/stable/", None),
     "dask": ("http://docs.dask.org/en/latest/", None),
-    "dask_kubernetes": ("https://kubernetes.dask.org/en/latest/", None),
     "google": ("https://googleapis.dev/python/storage/latest/", None),
 }
