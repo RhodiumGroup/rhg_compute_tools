@@ -2,7 +2,6 @@
 """Tools for interacting with kubernetes."""
 
 import os
-import re
 import socket
 import traceback as tb
 import warnings
@@ -460,7 +459,9 @@ def _get_cluster_dask_kubernetes(
     lib_threads = int(cpus_rounded / nthreads)
     for lib in ["OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"]:
         container["env"].append({"name": lib, "value": lib_threads})
-    format_request = lambda x: "{:04.2f}".format(np.floor(x * 100) / 100)
+
+    def format_request(x):
+        return "{:04.2f}".format(np.floor(x * 100) / 100)
 
     # set memory-limit if provided
     mem_ix = args.index("--memory-limit") + 1

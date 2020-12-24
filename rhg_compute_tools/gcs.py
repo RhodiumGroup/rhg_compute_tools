@@ -182,18 +182,6 @@ def replicate_directory_structure_on_gcs(src, dst, client):
         blob.upload_from_string("")
 
 
-def cp_to_gcs(src, dest, cp_flags=[]):
-    """Deprecated. Use ``cp``."""
-    warnings.warn("Deprecated. Use `cp`")
-    return cp(src, dest, flags=cp_flags)
-
-
-def cp_gcs(src, dest, cp_flags=[]):
-    """Deprecated. Use ``cp``"""
-    warnings.warn("Deprecated. Use `cp`")
-    return cp(src, dest, flags=cp_flags)
-
-
 def cp(src, dest, flags=[]):
     """Copy a file or recursively copy a directory from local
     path to GCS or vice versa. Must have already authenticated to use.
@@ -261,18 +249,6 @@ def cp(src, dest, flags=[]):
     end_time = dt.now()
 
     return stdout, stderr, end_time - st_time
-
-
-def sync_to_gcs(src, dest, sync_flags=[]):
-    """Deprecated. Use ``sync``"""
-    warnings.warn("Deprecated. Use `sync`.")
-    return sync(src, dest, flags=sync_flags)
-
-
-def sync_gcs(*args, **kwargs):
-    """Deprecated. Use ``sync``"""
-    warnings.warn("Deprecated. Use `sync`.")
-    return sync(src, dest, flags=sync_flags)
 
 
 def sync(src, dest, flags=["r", "d"]):
