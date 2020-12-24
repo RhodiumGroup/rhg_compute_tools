@@ -3,7 +3,7 @@ from ruamel import yaml
 
 # TODO: change this branch to master when gateway stuff is merged
 r = requests.get(
-    "https://raw.githubusercontent.com/RhodiumGroup/helm-chart/master/values.yml"
+    "https://raw.githubusercontent.com/RhodiumGroup/helm-chart/gateway-tweaks/values.yml"
 )
 
 data = yaml.safe_load(r.content)["dask-gateway"]["gateway"]["extraConfig"][
@@ -12,10 +12,11 @@ data = yaml.safe_load(r.content)["dask-gateway"]["gateway"]["extraConfig"][
 
 # change float cores to int cores b/c float not allowed for local cluster
 
-data = "from math import ceil\n" + data
+data = "from math import ceil\nfrom dask_gateway_server.options import Integer\n" + data
 data = data.replace(
-    "scaling_factors[options.profile] * standard_cores",
-    "ceil(scaling_factors[options.profile] * standard_cores)",
+    "Float(\"cpus\"", "Integer(\"cpus\""
+).replace(
+    "Float(\"scheduler_cores\"", "Integer(\"scheduler_cores\""
 )
 
 with open("dask_gateway_config.py", "w") as f:
