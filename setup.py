@@ -14,19 +14,36 @@ with open("HISTORY.rst") as history_file:
     history = re.sub(r"\(:issue:`[0-9]+`\)", "", history_file.read())
 
 requirements = [
-    "dask_kubernetes",
-    "google-cloud-storage"
+    "google-cloud-storage",
+    "click",
+    "dask-gateway",
+    "pandas",
+    "xarray",
+    "matplotlib",
+    "numpy",
+    "bottleneck",
     # TODO: put package requirements here
 ]
 
 setup_requirements = [
-    "pytest-runner",
     "setuptools_scm",
     # TODO(delgadom): put setup requirements (distutils extensions, etc.) here
 ]
 
 test_requirements = [
     "pytest",
+    "wheel",
+    "flake8",
+    "tox",
+    "coverage",
+    "Sphinx",
+    "pyyaml",
+    "pytest-cov",
+    "pytest-runner",
+    "pytest-mock",
+    "twine",
+    "dask-gateway-server[local]",
+    "ruamel.yaml",
     # TODO: put package test requirements here
 ]
 

@@ -13,7 +13,6 @@ import dask
 import numpy as np
 import yaml as yml
 from dask import distributed as dd
-from dask_kubernetes import KubeCluster
 
 # is dask-gateway available
 GATEWAY = False
@@ -22,7 +21,7 @@ try:
 
     GATEWAY = True
 except ModuleNotFoundError:
-    pass
+    from dask_kubernetes import KubeCluster
 
 
 def traceback(ftr):
