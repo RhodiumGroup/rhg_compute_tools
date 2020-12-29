@@ -5,20 +5,33 @@ import os
 import socket
 import traceback as tb
 import warnings
-from collections import Sequence
+from collections.abc import Sequence
+from pathlib import Path
 
 import dask
 import numpy as np
 import yaml as yml
 from dask import distributed as dd
-from dask_kubernetes import KubeCluster
+
+# is dask-gateway available
+GATEWAY = False
+try:
+    import dask_gateway
+
+    GATEWAY = True
+except ModuleNotFoundError:
+    from dask_kubernetes import KubeCluster
 
 
 def traceback(ftr):
     return tb.print_exception(type(ftr.exception()), ftr.exception(), ftr.traceback())
 
 
-def _append_docstring(func_with_docstring):
+def _append_docstring():
+    func_with_docstring = _get_cluster_dask_kubernetes
+    if GATEWAY:
+        func_with_docstring = _get_cluster_dask_gateway
+
     def decorator(func):
         if func.__doc__ is None:
             func.__doc__ = ""
@@ -34,8 +47,157 @@ def _append_docstring(func_with_docstring):
     return decorator
 
 
-def get_cluster(
+def _get_cluster_dask_gateway(**kwargs):
+    """
+    Start dask.kubernetes cluster and dask.distributed client
+
+    All arguments are optional. If not provided, defaults will be used. To view
+    defaults, instantiate a :class:`dask_gateway.Gateway` object and call
+    `gateway.cluster_options()`.
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of worker image to use (e.g. ``rhodium/worker:latest``). If ``None``
+        (default), default to worker specified in ``template_path``.
+    tag : str, optional
+        Tag of the worker image to use. Cannot be used in combination with
+        ``name``, which should include a tag. If provided, overrides the
+        tag of the image specified in ``template_path``. If ``None``
+        (default), the full image specified in ``name`` or ``template_path``
+        is used.
+    extra_pip_packages : str, optional
+        Extra pip packages to install on worker. Packages are installed
+        using ``pip install extra_pip_packages``.
+    profile : One of ["micro", "standard", "big", "giant"]
+        Determines size of worker. CPUs assigned are slightly under 1, 2, 4, and 8,
+        respectively. Memory assigned is slightly over 6, 12, 24, and 48 GB,
+        respectively.
+    cpus : float, optional
+        Set the CPUs requested for your workers as defined by ``profile``. Will
+        raise error if >7.5, because our 8-CPU nodes need ~.5 vCPU for kubernetes pods.
+        (NOTE 12/15/20: This is currently set to 1 by default to allow for mapping
+        big workflows across inputs, see
+        https://github.com/dask/dask-gateway/issues/364).
+    cred_name : str, optional
+        Name of Google Cloud credentials file to use, equivalent to providing
+        ``cred_path='/opt/gcsfuse_tokens/{}.json'.format(cred_name)``. May not use
+        if ``cred_path`` is specified.
+    cred_path : str, optional
+        Path to Google Cloud credentials file to use. May not use if ``cred_name`` is
+        specified.
+    env_items : dict, optional
+        A dictionary of env variable 'name'-'value' pairs to append to the env
+        variables included in ``template_path``, e.g.
+
+        .. code-block:: python
+
+            {
+                'MY_ENV_VAR': 'some string',
+            }
+
+    extra_worker_labels : dict, optional
+        Dictionary of kubernetes labels to apply to pods. None (default) results
+        in no additional labels besides those in the template, as well as
+        ``jupyter_user``, which is inferred from the ``JUPYTERHUB_USER``, or, if
+        not set, the server's hostname.
+    extra_pod_tolerations : list of dict, optional
+        List of pod toleration dictionaries. For example, to match a node pool
+        NoSchedule toleration, you might provide:
+
+        .. code-block:: python
+
+            extra_pod_tolerations=[
+                {
+                    "effect": "NoSchedule",
+                    "key": "k8s.dask.org_dedicated",
+                    "operator": "Equal",
+                    "value": "worker-highcpu"
+                },
+                {
+                    "effect": "NoSchedule",
+                    "key": "k8s.dask.org/dedicated",
+                    "operator": "Equal",
+                    "value": "worker-highcpu"
+                }
+            ]
+
+    keep_default_tolerations : bool, optional
+        Whether to append (default) or replace the default tolerations. Ignored if
+        ``extra_pod_tolerations`` is ``None`` or has length 0.
+
+    Returns
+    -------
+    client : object
+        :py:class:`dask.distributed.Client` connected to cluster
+    cluster : object
+        Pre-configured :py:class:`dask_gateway.GatewayCluster`
+
+
+    See Also
+    --------
+    :py:func:`get_micro_cluster` :
+        A cluster with one-CPU workers
+    :py:func:`get_standard_cluster` :
+        The default cluster specification
+    :py:func:`get_big_cluster` :
+        A cluster with workers twice the size of the default
+    :py:func:`get_giant_cluster` :
+        A cluster with workers four times the size of the default
+    """
+
+    gateway = dask_gateway.Gateway()
+    default_options = gateway.cluster_options()
+
+    new_kwargs = kwargs.copy()
+
+    if new_kwargs.get("cpus", 0) > 7.25:
+        raise ValueError("Must specify ``cpus`` <= 7.25")
+
+    # handle naming changes
+    for k, v in kwargs.items():
+        if k == "name":
+            new_kwargs["worker_image"] = kwargs["name"]
+            del new_kwargs["name"]
+        elif k == "cred_path":
+            if "cred_name" not in kwargs.keys():
+                new_kwargs["cred_name"] = Path(v).stem
+            del new_kwargs["cred_path"]
+        elif k == "extra_pod_tolerations":
+            if (
+                "keep_default_tolerations" in kwargs.keys()
+                and kwargs["keep_default_tolerations"] == False
+            ):
+                base_tols = {}
+            else:
+                base_tols = default_options.worker_tolerations
+            new_kwargs.pop("keep_default_tolerations", None)
+            new_kwargs["worker_tolerations"] = {
+                **base_tols,
+                **{
+                    f"user_{key}": val
+                    for key, val in enumerate(new_kwargs.pop("extra_pod_tolerations"))
+                },
+            }
+        elif k not in list(default_options.keys()) + ["tag"]:
+            raise KeyError(f"{k} not allowed as a kwarg when using dask-gateway")
+
+    if "worker_image" in new_kwargs and "tag" in new_kwargs:
+        raise ValueError("provide either `name` or `tag`, not both")
+
+    if "tag" in new_kwargs:
+        img, _ = default_options.worker_image.split(":")
+        new_kwargs["worker_image"] = ":".join(img, new_kwargs["tag"])
+
+    cluster = gateway.new_cluster(**new_kwargs)
+    client = cluster.get_client()
+
+    return client, cluster
+
+
+def _get_cluster_dask_kubernetes(
     name=None,
+    tag=None,
     extra_pip_packages=None,
     extra_conda_packages=None,
     memory_gb=None,
@@ -52,9 +214,13 @@ def get_cluster(
     extra_worker_labels=None,
     extra_pod_tolerations=None,
     keep_default_tolerations=True,
-    **kwargs
+    **kwargs,
 ):
     """
+
+    **DEPRECATED (12/15/2020) **: Since we no longer maintain clusters using
+    dask-kubernetes schedulers. Only dask-gateway is now supported.
+
     Start dask.kubernetes cluster and dask.distributed client
 
     All arguments are optional. If not provided, arguments will default to
@@ -63,8 +229,14 @@ def get_cluster(
     Parameters
     ----------
     name : str, optional
-        Name of worker image to use. If None, default to worker specified in
-        ``template_path``.
+        Name of worker image to use (e.g. ``rhodium/worker:latest``). If ``None``
+        (default), default to worker specified in ``template_path``.
+    tag : str, optional
+        Tag of the worker image to use. Cannot be used in combination with
+        ``name``, which should include a tag. If provided, overrides the
+        tag of the image specified in ``template_path``. If ``None``
+        (default), the full image specified in ``name`` or ``template_path``
+        is used.
     extra_pip_packages : str, optional
         Extra pip packages to install on worker. Packages are installed
         using ``pip install extra_pip_packages``.
@@ -166,6 +338,9 @@ def get_cluster(
 
     """
 
+    if (name is not None) and (tag is not None):
+        raise ValueError("provide either `name` or `tag`, not both")
+
     # update dask settings
     dask.config.set(dask_config_dict)
 
@@ -208,6 +383,9 @@ def get_cluster(
     # replace the defualt image with the new one
     if name is not None:
         container["image"] = name
+    if tag is not None:
+        img, _ = container["image"].split(":")
+        container["image"] = ":".join(img, tag)
 
     if extra_pip_packages is not None:
         container["env"].append(
@@ -281,7 +459,9 @@ def get_cluster(
     lib_threads = int(cpus_rounded / nthreads)
     for lib in ["OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"]:
         container["env"].append({"name": lib, "value": lib_threads})
-    format_request = lambda x: "{:04.2f}".format(np.floor(x * 100) / 100)
+
+    def format_request(x):
+        return "{:04.2f}".format(np.floor(x * 100) / 100)
 
     # set memory-limit if provided
     mem_ix = args.index("--memory-limit") + 1
@@ -307,37 +487,74 @@ def get_cluster(
     return client, cluster
 
 
-@_append_docstring(get_cluster)
+@_append_docstring()
+def get_cluster(*args, **kwargs):
+    if GATEWAY:
+        if len(args) > 0:
+            raise ValueError(
+                "Positional args not allowed when using dask-gateway. If you are "
+                "trying to pass worker name, use the ``name`` kwarg."
+            )
+        return _get_cluster_dask_gateway(**kwargs)
+    return _get_cluster_dask_kubernetes(*args, **kwargs)
+
+
+@_append_docstring()
 def get_giant_cluster(*args, **kwargs):
     """
     Start a cluster with 4x the memory and CPU per worker relative to default
     """
 
-    return get_cluster(*args, scaling_factor=4, **kwargs)
+    if GATEWAY:
+        if len(args) > 0:
+            raise ValueError(
+                "Positional args not allowed when using dask-gateway. If you are "
+                "trying to pass worker name, use the ``name`` kwarg."
+            )
+        return _get_cluster_dask_gateway(profile="giant", **kwargs)
+    return _get_cluster_dask_kubernetes(*args, scaling_factor=4, **kwargs)
 
 
-@_append_docstring(get_cluster)
+@_append_docstring()
 def get_big_cluster(*args, **kwargs):
     """
     Start a cluster with 2x the memory and CPU per worker relative to default
     """
+    if GATEWAY:
+        if len(args) > 0:
+            raise ValueError(
+                "Positional args not allowed when using dask-gateway. If you are "
+                "trying to pass worker name, use the ``name`` kwarg."
+            )
+        return _get_cluster_dask_gateway(profile="big", **kwargs)
+    return _get_cluster_dask_kubernetes(*args, scaling_factor=2, **kwargs)
 
-    return get_cluster(*args, scaling_factor=2, **kwargs)
 
-
-@_append_docstring(get_cluster)
+@_append_docstring()
 def get_standard_cluster(*args, **kwargs):
     """
     Start a cluster with 1x the memory and CPU per worker relative to default
     """
+    if GATEWAY:
+        if len(args) > 0:
+            raise ValueError(
+                "Positional args not allowed when using dask-gateway. If you are "
+                "trying to pass worker name, use the ``name`` kwarg."
+            )
+        return _get_cluster_dask_gateway(profile="standard", **kwargs)
+    return _get_cluster_dask_kubernetes(*args, scaling_factor=1, **kwargs)
 
-    return get_cluster(*args, scaling_factor=1, **kwargs)
 
-
-@_append_docstring(get_cluster)
+@_append_docstring()
 def get_micro_cluster(*args, **kwargs):
     """
     Start a cluster with a single CPU per worker
     """
-
-    return get_cluster(*args, scaling_factor=(0.97 / 1.75), **kwargs)
+    if GATEWAY:
+        if len(args) > 0:
+            raise ValueError(
+                "Positional args not allowed when using dask-gateway. If you are "
+                "trying to pass worker name, use the ``name`` kwarg."
+            )
+        return _get_cluster_dask_gateway(profile="micro", **kwargs)
+    return _get_cluster_dask_kubernetes(*args, scaling_factor=(0.97 / 1.75), **kwargs)

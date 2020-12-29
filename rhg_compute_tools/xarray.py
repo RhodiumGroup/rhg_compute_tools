@@ -439,7 +439,10 @@ def choose_along_axis(arr, axis=-1, replace=True, nchoices=1, p=None):
     for ind in np.ndindex(tuple([l for i, l in enumerate(arr.shape) if i != axis])):
         indexer = tuple(list(ind[:axis]) + [slice(None)] + list(ind[axis:]))
         result[indexer] = np.random.choice(
-            arr[indexer], size=nchoices, replace=replace, p=p[indexer],
+            arr[indexer],
+            size=nchoices,
+            replace=replace,
+            p=p[indexer],
         )
 
     return result

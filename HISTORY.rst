@@ -10,6 +10,7 @@ v0.2.3
   accept the same args and kwargs (:issue:`69`)
 * Swap ``bumpversion`` for ``setuptools_scm`` to handle versioning (:issue:`78`)
 * Cast coordinates to dict before gathering in ``rhg_compute_tools.xarray.dataarrays_from_delayed`` and ``rhg_compute_tools.xarray.datasets_from_delayed``. This avoids a mysterious memory explosion on the local machine. Also add ``name`` in the metadata used by those functions so that the name of each dataarray or Variable is preserved. (:issue:`83`)
+* Use ``dask-gateway`` when available when creating a cluster in ``rhg_compute_tools.kubernetes``. Add some tests using a local gateway cluster. TODO: More tests.
 
 v0.2.2
 ------
