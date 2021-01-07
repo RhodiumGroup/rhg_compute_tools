@@ -4,6 +4,10 @@ History
 
 .. current developments
 
+v1.0.1
+------
+* Fix `tag` kwarg in `get_cluster`
+
 v1.0.0
 ------
 * Make the gsutil API consistent, so that we have `cp`, `sync` and `rm`, each of which
