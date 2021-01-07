@@ -187,7 +187,8 @@ def _get_cluster_dask_gateway(**kwargs):
 
     if "tag" in new_kwargs:
         img, _ = default_options.worker_image.split(":")
-        new_kwargs["worker_image"] = ":".join(img, new_kwargs["tag"])
+        new_kwargs["worker_image"] = ":".join((img, new_kwargs["tag"]))
+        del new_kwargs["tag"]
 
     cluster = gateway.new_cluster(**new_kwargs)
     client = cluster.get_client()
