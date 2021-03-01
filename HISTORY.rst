@@ -4,6 +4,10 @@ History
 
 .. current developments
 
+v1.1
+----
+* Add `gcs.ls` function
+
 v1.0.1
 ------
 * Fix `tag` kwarg in `get_cluster`
