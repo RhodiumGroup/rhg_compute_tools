@@ -316,3 +316,20 @@ def sync(src, dest, flags=["r", "d"]):
     end_time = dt.now()
 
     return stdout, stderr, end_time - st_time
+
+
+def ls(dir_path):
+    """List a directory quickly using `gsutil`"""
+
+    dir_url = str(dir_path).replace("/gcs/", "gs://")
+
+    cmd = f"gsutil ls {dir_url}"
+
+    print(f"Running cmd: {cmd}")
+    cmd = shlex.split(cmd)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+
+    res = [x.split("/")[1].rstrip(r"\\n") for x in str(stdout).split(dir_url)[2:]]
+
+    return res
