@@ -234,17 +234,19 @@ def datasets_from_delayed(futures, client=None):
         for i in range(len(futures))
     ]
 
-    dask_array_metadata = [
-        {
-            k: (
-                client.submit(
-                    lambda x: (x[k].data.shape, x[k].data.dtype), futures[i]
-                ).result()
-            )
-            for k in data_var_keys[i]
-        }
-        for i in range(len(futures))
-    ]
+    dask_array_metadata = client.gather(
+        [
+            {
+                k: (
+                    client.submit(
+                        lambda x: (x[k].data.shape, x[k].data.dtype), futures[i]
+                    )
+                )
+                for k in data_var_keys[i]
+            }
+            for i in range(len(futures))
+        ]
+    )
 
     dask_data_arrays = [
         {
@@ -259,20 +261,22 @@ def datasets_from_delayed(futures, client=None):
     ]
 
     # using dict(x.coords) b/c gathering coords can blow up memory for some reason
-    array_metadata = [
-        {
-            k: client.submit(
-                lambda x: {
-                    "dims": x[k].dims,
-                    "coords": dict(x[k].coords),
-                    "attrs": x[k].attrs,
-                },
-                futures[i],
-            ).result()
-            for k in data_var_keys[i]
-        }
-        for i in range(len(futures))
-    ]
+    array_metadata = client.gather(
+        [
+            {
+                k: client.submit(
+                    lambda x: {
+                        "dims": x[k].dims,
+                        "coords": dict(x[k].coords),
+                        "attrs": x[k].attrs,
+                    },
+                    futures[i],
+                )
+                for k in data_var_keys[i]
+            }
+            for i in range(len(futures))
+        ]
+    )
 
     data_arrays = [
         {
