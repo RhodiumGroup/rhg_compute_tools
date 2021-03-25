@@ -4,6 +4,10 @@ History
 
 .. current developments
 
+v1.1.1
+------
+* Refactor ``datasets_from_delayed`` to speed up
+
 v1.1
 ----
 * Add `gcs.ls` function
