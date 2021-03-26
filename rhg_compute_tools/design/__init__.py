@@ -5,6 +5,8 @@ from rhg_compute_tools.design.plotting import add_colorbar, get_color_scheme
 
 _load_colors()
 
+# the following lines are an attempt to add RHG fonts. they don't work. grumble grumble.
+
 # import matplotlib.font_manager as fm
 #
 # RHG_FONTS = [
@@ -25,9 +27,5 @@ _load_colors()
 #
 # for (sysfont, ext) in RHG_FONTS:
 #     fm.findfont(sysfont, fontext=ext, rebuild_if_missing=False)
-
-from matplotlib.font_manager import _rebuild
-
-_rebuild()
 
 __all__ = ["get_color_scheme", "add_colorbar"]
