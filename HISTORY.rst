@@ -4,10 +4,13 @@ History
 
 .. current developments
 
+v1.1.2
+------
+* Drop ``matplotlib.font_manager._rebuild()`` call in ``design.__init__`` - no longer supported (:issue:`96`)
+
 v1.1.1
 ------
 * Refactor ``datasets_from_delayed`` to speed up
-* Drop ``matplotlib.font_manager._rebuild()`` call in ``design.__init__`` - no longer supported (:issue:`96`)
 
 v1.1
 ----
