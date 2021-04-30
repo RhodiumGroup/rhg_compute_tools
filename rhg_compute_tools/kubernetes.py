@@ -47,7 +47,9 @@ def _append_docstring():
     return decorator
 
 
-def _get_cluster_dask_gateway(**kwargs):
+def _get_cluster_dask_gateway(
+    extra_conda_packages=None, extra_pip_packages=None, **kwargs
+):
     """
     Start dask.kubernetes cluster and dask.distributed client
 
@@ -166,7 +168,7 @@ def _get_cluster_dask_gateway(**kwargs):
         elif k == "extra_pod_tolerations":
             if (
                 "keep_default_tolerations" in kwargs.keys()
-                and kwargs["keep_default_tolerations"] == False
+                and not kwargs["keep_default_tolerations"]
             ):
                 base_tols = {}
             else:
@@ -189,6 +191,14 @@ def _get_cluster_dask_gateway(**kwargs):
         img, _ = default_options.worker_image.split(":")
         new_kwargs["worker_image"] = ":".join((img, new_kwargs["tag"]))
         del new_kwargs["tag"]
+
+    # set default env items if not specified so that we can add to it w/ extra pkgs
+    if "env_items" not in new_kwargs:
+        new_kwargs["env_items"] = {}
+    if extra_conda_packages is not None:
+        new_kwargs["env_items"]["EXTRA_CONDA_PACKAGES"] = extra_conda_packages
+    if extra_pip_packages is not None:
+        new_kwargs["env_items"]["EXTRA_PIP_PACKAGES"] = extra_conda_packages
 
     cluster = gateway.new_cluster(**new_kwargs)
     client = cluster.get_client()

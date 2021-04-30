@@ -3,10 +3,11 @@ from ruamel import yaml
 
 # TODO: change this branch to master when gateway stuff is merged
 r = requests.get(
-    "https://raw.githubusercontent.com/RhodiumGroup/helm-chart/master/values.yml"
+    "https://raw.githubusercontent.com/RhodiumGroup/daskhub-rhg-config/main/"
+    "daskhub-rhg/values.yaml"
 )
 
-data = yaml.safe_load(r.content)["dask-gateway"]["gateway"]["extraConfig"][
+data = yaml.safe_load(r.content)["daskhub"]["dask-gateway"]["gateway"]["extraConfig"][
     "optionHandler"
 ]
 

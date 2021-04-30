@@ -44,6 +44,7 @@ def test_create_worker_gateway(mem=None, cpu=None, scale=None):
         profile="micro",
         cred_path="path/to/test_cred.json",
         env_items={"TEST_ITEM": "TEST_RESULT"},
+        extra_pip_packages="pandas",
     )
 
     cluster.scale(1)
