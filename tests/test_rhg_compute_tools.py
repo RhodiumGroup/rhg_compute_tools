@@ -6,9 +6,10 @@
 from time import sleep
 
 import pytest
+from dask.distributed import Client, TimeoutError
 from dask_gateway import Gateway
 
-from rhg_compute_tools import kubernetes
+from rhg_compute_tools import kubernetes, utils
 
 
 class LocalGateway(Gateway):
@@ -72,3 +73,38 @@ scale_test_params = [
     (None, None, 2),
     (None, None, 4),
 ]
+
+
+def test_retry_with_timeout():
+    def wait_func(time):
+        sleep(time)
+        return None
+
+    def test_suite(use_dask=True):
+        with pytest.raises(TimeoutError):
+            utils.retry_with_timeout(
+                wait_func, 5, retry_freq=0.1, n_retries=1, use_dask=use_dask
+            )
+        with pytest.raises(TimeoutError):
+            utils.retry_with_timeout(
+                wait_func, 1, retry_freq=0.4, n_retries=2, use_dask=use_dask
+            )
+        return utils.retry_with_timeout(
+            wait_func, 0.1, retry_freq=1, n_retries=1, use_dask=use_dask
+        )
+
+    # first test with non-dask timeout approach
+    test_suite()
+
+    # now test with dask timeout approach on workers
+    client = Client()
+    client.submit(test_suite).result()
+
+    # test without dask timeout approach on workers where threads_per_worker=1
+    del client
+    client = Client(threads_per_worker=1)
+    client.submit(test_suite, use_dask=False)
+
+    # and now test to make sure the non-dask approach if specified that way (e.g when
+    # running from the notebook but with a Client instance open)
+    test_suite(use_dask=False)
