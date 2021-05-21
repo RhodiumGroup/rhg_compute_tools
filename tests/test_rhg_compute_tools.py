@@ -83,15 +83,15 @@ def test_retry_with_timeout():
     def test_suite(use_dask=True):
         with pytest.raises(TimeoutError):
             utils.retry_with_timeout(
-                wait_func, 5, retry_freq=0.1, n_retries=1, use_dask=use_dask
-            )
+                wait_func, retry_freq=0.1, n_retries=1, use_dask=use_dask
+            )(5)
         with pytest.raises(TimeoutError):
             utils.retry_with_timeout(
-                wait_func, 1, retry_freq=0.4, n_retries=2, use_dask=use_dask
-            )
+                wait_func, retry_freq=0.4, n_retries=2, use_dask=use_dask
+            )(1)
         return utils.retry_with_timeout(
-            wait_func, 0.1, retry_freq=1, n_retries=1, use_dask=use_dask
-        )
+            wait_func, retry_freq=1, n_retries=1, use_dask=use_dask
+        )(0.1)
 
     # first test with non-dask timeout approach
     test_suite()

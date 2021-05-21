@@ -301,7 +301,7 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
 
     Parameters
     ----------
-    func : function
+    obj : function
         Function to decorate. All globals not matching one of the allowed
         types will raise an AssertionError
     allowed_types : type or tuple of types, optional
@@ -442,9 +442,8 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
     return inner
 
 
-def retry_with_timeout(
-    func, *args, retry_freq=10, n_retries=1, use_dask=True, **kwargs
-):
+@toolz.functoolz.curry
+def retry_with_timeout(func, retry_freq=10, n_retries=1, use_dask=True):
     """Execute ``func`` ``n_retries`` times, each time only allowing ``retry_freq``
     seconds for the function to complete. There are two main cases where this could be
     useful:
@@ -483,8 +482,6 @@ def retry_with_timeout(
         If true, will try to use the ``dask``-based implementation (see description
         above). If no ``Client`` instance is present, will fall back to
         ``use_dask=False``.
-    *args, **kwargs :
-        Args and kwargs to be passed to ``func``.
 
     Returns
     -------
@@ -499,6 +496,22 @@ def retry_with_timeout(
         If ``use_dask=True``, and a ``Client`` instance is present, but this fucntion is
         executed from the client (rather than as a task submitted to a worker), you will
         get ``ValueError("No workers found")``.
+
+    Examples
+    --------
+    .. code-block:: python
+
+        >>> import time
+        >>> @retry_with_timeout(retry_freq=.5, n_retries=1)
+        ... def wait_func(timeout):
+        ...     time.sleep(timeout)
+        ...     print("success")
+        >>> wait_func(.1)
+        success
+        >>> wait_func(1)
+        Traceback (most recent call last):
+            ...
+        asyncio.exceptions.TimeoutError: Func did not complete successfully in allowed time/number of retries.
     """
 
     # if use_dask specified, check if there is an active client, otherwise set to false
@@ -508,36 +521,42 @@ def retry_with_timeout(
         except ValueError:
             use_dask = False
 
-    if use_dask:
-        # dask version
-        with dd.worker_client() as client:
-            for retry_n in range(n_retries):
-                fut = client.submit(func, *args, **kwargs)
-                try:
-                    return fut.result(timeout=retry_freq)
-                except dd.TimeoutError:
-                    del fut
-    else:
-        # non-dask version
-        def this_func(q):
-            args = q.get_nowait()
-            kwargs = q.get_nowait()
-            out = func(*args, **kwargs)
-            q.put(out)
+    @functools.wraps(func)
+    def inner(*args, **kwargs):
+        if use_dask:
+            # dask version
+            with dd.worker_client() as client:
+                for retry_n in range(n_retries):
+                    fut = client.submit(func, *args, **kwargs)
+                    try:
+                        return fut.result(timeout=retry_freq)
+                    except dd.TimeoutError:
+                        del fut
+        else:
+            # non-dask version
+            def this_func(q):
+                args = q.get_nowait()
+                kwargs = q.get_nowait()
+                out = func(*args, **kwargs)
+                q.put(out)
 
-        for retry_n in range(n_retries):
-            q = queue.Queue()
-            p = threading.Thread(target=this_func, args=(q,))
-            q.put_nowait(args)
-            q.put_nowait(kwargs)
-            p.start()
-            p.join(timeout=retry_freq)
-            if p.is_alive():
-                del p, q
-                continue
-            elif q.qsize() == 0:
-                raise RuntimeError(
-                    "Queue is not empty. Something malfunctined in ``func``"
-                )
-            return q.get()
-    raise dd.TimeoutError
+            for retry_n in range(n_retries):
+                q = queue.Queue()
+                p = threading.Thread(target=this_func, args=(q,))
+                q.put_nowait(args)
+                q.put_nowait(kwargs)
+                p.start()
+                p.join(timeout=retry_freq)
+                if p.is_alive():
+                    del p, q
+                    continue
+                elif q.qsize() == 0:
+                    raise RuntimeError(
+                        "Queue is not empty. Something malfunctined in ``func``"
+                    )
+                return q.get()
+        raise dd.TimeoutError(
+            "Func did not complete successfully in allowed time/number of retries."
+        )
+
+    return inner
