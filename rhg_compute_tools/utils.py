@@ -443,8 +443,8 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
 
 
 @toolz.functoolz.curry
-def retry_with_timeout(func, retry_freq=10, n_retries=1, use_dask=True):
-    """Execute ``func`` ``n_retries`` times, each time only allowing ``retry_freq``
+def retry_with_timeout(func, retry_freq=10, n_tries=1, use_dask=True):
+    """Execute ``func`` ``n_tries`` times, each time only allowing ``retry_freq``
     seconds for the function to complete. There are two main cases where this could be
     useful:
 
@@ -476,7 +476,7 @@ def retry_with_timeout(func, retry_freq=10, n_retries=1, use_dask=True):
         The function you would like to execute with a timeout backoff.
     retry_freq : float
         The number of seconds to wait between successive retries of ``func``.
-    n_retries : int
+    n_tries : int
         The number of retries to attempt before raising an error if none were successful
     use_dask : bool
         If true, will try to use the ``dask``-based implementation (see description
@@ -491,7 +491,7 @@ def retry_with_timeout(func, retry_freq=10, n_retries=1, use_dask=True):
     ------
     dask.distributed.TimeoutError :
         If the function does not execute successfully in the specified ``retry_freq``,
-        after trying ``n_retries`` times.
+        after trying ``n_tries`` times.
     ValueError :
         If ``use_dask=True``, and a ``Client`` instance is present, but this fucntion is
         executed from the client (rather than as a task submitted to a worker), you will
@@ -502,7 +502,7 @@ def retry_with_timeout(func, retry_freq=10, n_retries=1, use_dask=True):
     .. code-block:: python
 
         >>> import time
-        >>> @retry_with_timeout(retry_freq=.5, n_retries=1)
+        >>> @retry_with_timeout(retry_freq=.5, n_tries=1)
         ... def wait_func(timeout):
         ...     time.sleep(timeout)
         ...     print("success")
@@ -526,7 +526,7 @@ def retry_with_timeout(func, retry_freq=10, n_retries=1, use_dask=True):
         if use_dask:
             # dask version
             with dd.worker_client() as client:
-                for retry_n in range(n_retries):
+                for try_n in range(n_tries):
                     fut = client.submit(func, *args, **kwargs)
                     try:
                         return fut.result(timeout=retry_freq)
@@ -540,7 +540,7 @@ def retry_with_timeout(func, retry_freq=10, n_retries=1, use_dask=True):
                 out = func(*args, **kwargs)
                 q.put(out)
 
-            for retry_n in range(n_retries):
+            for try_n in range(n_tries):
                 q = queue.Queue()
                 p = threading.Thread(target=this_func, args=(q,))
                 q.put_nowait(args)
