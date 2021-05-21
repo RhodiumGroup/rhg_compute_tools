@@ -5,8 +5,11 @@ import inspect
 import itertools
 import json
 import os
+import queue
+import threading
 import types
 
+import dask.distributed as dd
 import numpy as np
 import toolz
 
@@ -437,3 +440,104 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
         return obj(*args, **kwargs)
 
     return inner
+
+
+def retry_with_timeout(
+    func, *args, retry_freq=10, n_retries=1, use_dask=True, **kwargs
+):
+    """Execute ``func`` ``n_retries`` times, each time only allowing ``retry_freq``
+    seconds for the function to complete. There are two main cases where this could be
+    useful:
+
+    1. You have a function that you know should execute quickly, but you may get
+       occasional errors when running it simultaneously on a large number of workers. An
+       example of this is massively parallelized I/O operations of netcdfs on GCS.
+    2. You have a function that may or may not take a long time, but you want to skip it
+       if it takes too long.
+
+    There are two possible ways that this timeout function is implemented, each with
+    pros and cons:
+
+    1. Using python's native ``threading`` module. If you are executing ``func`` outside
+       of a ``dask`` worker, you likely will want this approach. It may be slightly
+       faster and has the benefit of starting the timeout clock when the function starts
+       executing (rather than when the function is *submitted* to a dask scheduler).
+       **Note**: This approach will also work if calling ``func`` *from* a dask worker,
+       but only if the cluster was set up such that ``threads_per_worker=1``. Otherwise,
+       this may cause issues if used from a dask worker.
+    2. Using ``dask``. If you would like a dask worker to execute this function, you
+       likely will want this approach. It can be executed from a dask worker regardless
+       of the number of threads per worker (see above), but has the downside that the
+       timeout clock begins once ``func`` is submitted, rather than when it begins
+       executing.
+
+    Parameters
+    ----------
+    func : callable
+        The function you would like to execute with a timeout backoff.
+    retry_freq : float
+        The number of seconds to wait between successive retries of ``func``.
+    n_retries : int
+        The number of retries to attempt before raising an error if none were successful
+    use_dask : bool
+        If true, will try to use the ``dask``-based implementation (see description
+        above). If no ``Client`` instance is present, will fall back to
+        ``use_dask=False``.
+    *args, **kwargs :
+        Args and kwargs to be passed to ``func``.
+
+    Returns
+    -------
+    The return value of ``func``
+
+    Raises
+    ------
+    dask.distributed.TimeoutError :
+        If the function does not execute successfully in the specified ``retry_freq``,
+        after trying ``n_retries`` times.
+    ValueError :
+        If ``use_dask=True``, and a ``Client`` instance is present, but this fucntion is
+        executed from the client (rather than as a task submitted to a worker), you will
+        get ``ValueError("No workers found")``.
+    """
+
+    # if use_dask specified, check if there is an active client, otherwise set to false
+    if use_dask:
+        try:
+            dd.get_client()
+        except ValueError:
+            use_dask = False
+
+    if use_dask:
+        # dask version
+        with dd.worker_client() as client:
+            for retry_n in range(n_retries):
+                fut = client.submit(func, *args, **kwargs)
+                try:
+                    return fut.result(timeout=retry_freq)
+                except dd.TimeoutError:
+                    del fut
+    else:
+        # non-dask version
+        def this_func(q):
+            args = q.get_nowait()
+            kwargs = q.get_nowait()
+            out = func(*args, **kwargs)
+            q.put(out)
+
+        for retry_n in range(n_retries):
+            q = queue.Queue()
+            p = threading.Thread(target=this_func, args=(q,))
+            q.put_nowait(args)
+            q.put_nowait(kwargs)
+            p.start()
+            p.join(timeout=retry_freq)
+            if p.is_alive():
+                del p, q
+                continue
+            elif q.qsize() == 0:
+                raise RuntimeError(
+                    "Queue is not empty. Something malfunctined in ``func``"
+                )
+            return q.get()
+    raise dd.TimeoutError
