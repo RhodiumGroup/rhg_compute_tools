@@ -505,9 +505,7 @@ def retry_with_timeout(func, retry_freq=10, n_tries=1, use_dask=True):
         >>> @retry_with_timeout(retry_freq=.5, n_tries=1)
         ... def wait_func(timeout):
         ...     time.sleep(timeout)
-        ...     print("success")
         >>> wait_func(.1)
-        success
         >>> wait_func(1)
         Traceback (most recent call last):
             ...
