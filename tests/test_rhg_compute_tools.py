@@ -11,6 +11,15 @@ from dask_gateway import Gateway
 
 from rhg_compute_tools import kubernetes, utils
 
+HAS_RPY2 = False
+try:
+    from rpy2 import robjects
+    from rpy2.robjects.packages import importr
+
+    HAS_RPY2 = True
+except ImportError:
+    ...
+
 
 class LocalGateway(Gateway):
     def __init__(self):
@@ -80,31 +89,37 @@ def test_retry_with_timeout():
         sleep(time)
         return None
 
-    def test_suite(use_dask=True):
+    def rpy2_func(time):
+        # include rpy2 command to make sure it can handle this
+        base = importr("base")
+        sleep(time)
+        return robjects.r["pi"]
+
+    def test_suite(test_func=wait_func, use_dask=True):
         with pytest.raises(TimeoutError):
             utils.retry_with_timeout(
-                wait_func, retry_freq=0.1, n_tries=1, use_dask=use_dask
+                test_func, retry_freq=0.1, n_tries=1, use_dask=use_dask
             )(5)
         with pytest.raises(TimeoutError):
             utils.retry_with_timeout(
-                wait_func, retry_freq=0.4, n_tries=2, use_dask=use_dask
+                test_func, retry_freq=0.4, n_tries=2, use_dask=use_dask
             )(1)
         return utils.retry_with_timeout(
-            wait_func, retry_freq=1, n_tries=1, use_dask=use_dask
+            test_func, retry_freq=5, n_tries=1, use_dask=use_dask
         )(0.1)
 
-    # first test with non-dask timeout approach
-    test_suite()
-
-    # now test with dask timeout approach on workers
+    # test with dask timeout approach on workers
     client = Client()
-    client.submit(test_suite).result()
+    client.submit(test_suite, use_dask=True).result()
 
     # test without dask timeout approach on workers where threads_per_worker=1
+    # in this case, we can test the rpy2 command
     del client
     client = Client(threads_per_worker=1)
-    client.submit(test_suite, use_dask=False)
+    client.submit(test_suite, use_dask=False).result()
+    if HAS_RPY2:
+        client.submit(test_suite, use_dask=True, test_func=rpy2_func).result()
 
-    # and now test to make sure the non-dask approach if specified that way (e.g when
+    # test to make sure the non-dask approach works if specified that way (e.g when
     # running from the notebook but with a Client instance open)
     test_suite(use_dask=False)

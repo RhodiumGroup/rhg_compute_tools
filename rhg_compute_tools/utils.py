@@ -531,7 +531,7 @@ def retry_with_timeout(func, retry_freq=10, n_tries=1, use_dask=True):
                     try:
                         return fut.result(timeout=retry_freq)
                     except dd.TimeoutError:
-                        del fut
+                        ...
         else:
             # non-dask version
             def this_func(q):
