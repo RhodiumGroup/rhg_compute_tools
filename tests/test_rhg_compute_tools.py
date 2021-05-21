@@ -6,9 +6,19 @@
 from time import sleep
 
 import pytest
+from dask.distributed import Client, TimeoutError
 from dask_gateway import Gateway
 
-from rhg_compute_tools import kubernetes
+from rhg_compute_tools import kubernetes, utils
+
+HAS_RPY2 = False
+try:
+    from rpy2 import robjects
+    from rpy2.robjects.packages import importr
+
+    HAS_RPY2 = True
+except ImportError:
+    ...
 
 
 class LocalGateway(Gateway):
@@ -72,3 +82,44 @@ scale_test_params = [
     (None, None, 2),
     (None, None, 4),
 ]
+
+
+def test_retry_with_timeout():
+    def wait_func(time):
+        sleep(time)
+        return None
+
+    def rpy2_func(time):
+        # include rpy2 command to make sure it can handle this
+        base = importr("base")
+        sleep(time)
+        return robjects.r["pi"]
+
+    def test_suite(test_func=wait_func, use_dask=True):
+        with pytest.raises(TimeoutError):
+            utils.retry_with_timeout(
+                test_func, retry_freq=0.1, n_tries=1, use_dask=use_dask
+            )(5)
+        with pytest.raises(TimeoutError):
+            utils.retry_with_timeout(
+                test_func, retry_freq=0.4, n_tries=2, use_dask=use_dask
+            )(1)
+        return utils.retry_with_timeout(
+            test_func, retry_freq=5, n_tries=1, use_dask=use_dask
+        )(0.1)
+
+    # test with dask timeout approach on workers
+    client = Client()
+    client.submit(test_suite, use_dask=True).result()
+
+    # test without dask timeout approach on workers where threads_per_worker=1
+    # in this case, we can test the rpy2 command
+    del client
+    client = Client(threads_per_worker=1)
+    client.submit(test_suite, use_dask=False).result()
+    if HAS_RPY2:
+        client.submit(test_suite, use_dask=True, test_func=rpy2_func).result()
+
+    # test to make sure the non-dask approach works if specified that way (e.g when
+    # running from the notebook but with a Client instance open)
+    test_suite(use_dask=False)

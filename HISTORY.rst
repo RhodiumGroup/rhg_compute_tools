@@ -4,6 +4,10 @@ History
 
 .. current developments
 
+v1.1.3
+------
+* Add ``retry_with_timeout`` to ``rhg_compute_tools.utils.py``
+
 v1.1.2
 ------
 * Drop ``matplotlib.font_manager._rebuild()`` call in ``design.__init__`` - no longer supported (:issue:`96`)
