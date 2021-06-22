@@ -6,7 +6,7 @@ import xarray as xr
 from dask import distributed as dd
 
 
-def dataarrays_from_delayed(futures, client=None):
+def dataarrays_from_delayed(futures, client=None, **dask_kwargs):
     """
     Returns a list of xarray dataarrays from a list of futures of dataarrays
 
@@ -19,6 +19,9 @@ def dataarrays_from_delayed(futures, client=None):
         :py:class:`dask.distributed.Client` to use in gathering
         metadata on futures. If not provided, client is inferred
         from context.
+    dask_kwargs : optional
+        kwargs to pass to ``client.map`` and ``client.gather`` commands (e.g.
+        ``priority``)
 
     Returns
     -------
@@ -43,7 +46,7 @@ def dataarrays_from_delayed(futures, client=None):
 
         >>> client = dd.Client()
         >>> fut = client.map(build_arr, range(3))
-        >>> arrs = dataarrays_from_delayed(fut)
+        >>> arrs = dataarrays_from_delayed(fut, priority=1)
         >>> arrs[-1]  # doctest: +ELLIPSIS
         <xarray.DataArray ...(x: 2)>
         dask.array<...shape=(2,), dtype=int64, chunksize=(2,), chunktype=numpy.ndarray>
@@ -67,10 +70,10 @@ def dataarrays_from_delayed(futures, client=None):
     if client is None:
         client = dd.get_client()
 
-    delayed_arrays = client.map(lambda x: x.data, futures)
+    delayed_arrays = client.map(lambda x: x.data, futures, **dask_kwargs)
 
     dask_array_metadata = client.gather(
-        client.map(lambda x: (x.data.shape, x.data.dtype), futures)
+        client.map(lambda x: (x.data.shape, x.data.dtype), futures, **dask_kwargs)
     )
 
     dask_arrays = [
@@ -88,6 +91,7 @@ def dataarrays_from_delayed(futures, client=None):
                 "name": x.name,
             },
             futures,
+            **dask_kwargs
         )
     )
 
@@ -98,7 +102,7 @@ def dataarrays_from_delayed(futures, client=None):
     return data_arrays
 
 
-def dataarray_from_delayed(futures, dim=None, client=None):
+def dataarray_from_delayed(futures, dim=None, client=None, **dask_kwargs):
     """
     Returns a DataArray from a list of futures
 
@@ -114,6 +118,9 @@ def dataarray_from_delayed(futures, dim=None, client=None):
         :py:class:`dask.distributed.Client` to use in gathering
         metadata on futures. If not provided, client is inferred
         from context.
+    dask_kwargs : optional
+        kwargs to pass to ``client.map`` and ``client.gather`` commands (e.g.
+        ``priority``)
 
     Returns
     -------
@@ -140,7 +147,9 @@ def dataarray_from_delayed(futures, dim=None, client=None):
         >>> fut = client.map(build_arr, range(3))
         >>> da = dataarray_from_delayed(
         ...     fut,
-        ...     dim=pd.Index(range(3), name='simulation'))
+        ...     dim=pd.Index(range(3), name='simulation'),
+        ...     priority=1
+        ... )
         ...
 
         >>> da  # doctest: +ELLIPSIS
@@ -153,13 +162,13 @@ def dataarray_from_delayed(futures, dim=None, client=None):
         >>> client.close()
     """
 
-    data_arrays = dataarrays_from_delayed(futures, client=client)
+    data_arrays = dataarrays_from_delayed(futures, client=client, **dask_kwargs)
     da = xr.concat(data_arrays, dim=dim)
 
     return da
 
 
-def datasets_from_delayed(futures, client=None):
+def datasets_from_delayed(futures, client=None, **dask_kwargs):
     """
     Returns a list of xarray datasets from a list of futures of datasets
 
@@ -172,6 +181,9 @@ def datasets_from_delayed(futures, client=None):
         :py:class:`dask.distributed.Client` to use in gathering
         metadata on futures. If not provided, client is inferred
         from context.
+    dask_kwargs : optional
+        kwargs to pass to ``client.map`` and ``client.gather`` commands (e.g.
+        ``priority``)
 
     Returns
     -------
@@ -197,7 +209,7 @@ def datasets_from_delayed(futures, client=None):
 
         >>> client = dd.Client()
         >>> fut = client.map(build_ds, range(3))
-        >>> arrs = datasets_from_delayed(fut)
+        >>> arrs = datasets_from_delayed(fut, priority=1)
         >>> arrs[-1]  # doctest: +ELLIPSIS
         <xarray.Dataset>
         Dimensions:  (x: 2)
@@ -226,11 +238,14 @@ def datasets_from_delayed(futures, client=None):
         client = dd.get_client()
 
     data_var_keys = client.gather(
-        client.map(lambda x: list(x.data_vars.keys()), futures)
+        client.map(lambda x: list(x.data_vars.keys()), futures, **dask_kwargs)
     )
 
     delayed_arrays = [
-        {k: (client.submit(lambda x: x[k].data, futures[i])) for k in data_var_keys[i]}
+        {
+            k: client.submit(lambda x: x[k].data, futures[i], dask_kwargs)
+            for k in data_var_keys[i]
+        }
         for i in range(len(futures))
     ]
 
@@ -239,7 +254,9 @@ def datasets_from_delayed(futures, client=None):
             {
                 k: (
                     client.submit(
-                        lambda x: (x[k].data.shape, x[k].data.dtype), futures[i]
+                        lambda x: (x[k].data.shape, x[k].data.dtype),
+                        futures[i],
+                        **dask_kwargs
                     )
                 )
                 for k in data_var_keys[i]
@@ -271,6 +288,7 @@ def datasets_from_delayed(futures, client=None):
                         "attrs": x[k].attrs,
                     },
                     futures[i],
+                    **dask_kwargs
                 )
                 for k in data_var_keys[i]
             }
@@ -288,7 +306,9 @@ def datasets_from_delayed(futures, client=None):
 
     datasets = [xr.Dataset(arr) for arr in data_arrays]
 
-    dataset_metadata = client.gather(client.map(lambda x: x.attrs, futures))
+    dataset_metadata = client.gather(
+        client.map(lambda x: x.attrs, futures, **dask_kwargs)
+    )
 
     for i in range(len(futures)):
         datasets[i].attrs.update(dataset_metadata[i])
@@ -296,7 +316,7 @@ def datasets_from_delayed(futures, client=None):
     return datasets
 
 
-def dataset_from_delayed(futures, dim=None, client=None):
+def dataset_from_delayed(futures, dim=None, client=None, **dask_kwargs):
     """
     Returns an :py:class:`xarray.Dataset` from a list of futures
 
@@ -312,6 +332,9 @@ def dataset_from_delayed(futures, dim=None, client=None):
         :py:class:`dask.distributed.Client` to use in gathering
         metadata on futures. If not provided, client is inferred
         from context.
+    dask_kwargs : optional
+        kwargs to pass to ``client.map`` and ``client.gather`` commands (e.g.
+        ``priority``)
 
     Returns
     -------
@@ -337,7 +360,7 @@ def dataset_from_delayed(futures, dim=None, client=None):
 
         >>> client = dd.Client()
         >>> fut = client.map(build_ds, range(3))
-        >>> ds = dataset_from_delayed(fut, dim=pd.Index(range(3), name='y'))
+        >>> ds = dataset_from_delayed(fut, dim=pd.Index(range(3), name='y'), priority=1)
         >>> ds
         <xarray.Dataset>
         Dimensions:  (x: 2, y: 3)
@@ -350,7 +373,7 @@ def dataset_from_delayed(futures, dim=None, client=None):
         >>> client.close()
     """
 
-    datasets = datasets_from_delayed(futures, client=client)
+    datasets = datasets_from_delayed(futures, client=client, **dask_kwargs)
     ds = xr.concat(datasets, dim=dim)
 
     return ds
