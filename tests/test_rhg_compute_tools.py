@@ -105,7 +105,7 @@ def test_retry_with_timeout():
                 test_func, retry_freq=0.4, n_tries=2, use_dask=use_dask
             )(1)
         return utils.retry_with_timeout(
-            test_func, retry_freq=5, n_tries=1, use_dask=use_dask
+            test_func, retry_freq=10, n_tries=1, use_dask=use_dask
         )(0.1)
 
     # test with dask timeout approach on workers

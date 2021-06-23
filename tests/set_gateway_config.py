@@ -1,14 +1,13 @@
 import requests
-from ruamel import yaml
+from ruamel.yaml import YAML
 
 # TODO: change this branch to master when gateway stuff is merged
 r = requests.get(
     "https://raw.githubusercontent.com/RhodiumGroup/helm-chart/master/values.yml"
 )
 
-data = yaml.safe_load(r.content)["dask-gateway"]["gateway"]["extraConfig"][
-    "optionHandler"
-]
+yaml = YAML(type="safe", pure=True)
+data = yaml.load(r.content)["dask-gateway"]["gateway"]["extraConfig"]["optionHandler"]
 
 # change float cores to int cores b/c float not allowed for local cluster
 
