@@ -6,7 +6,7 @@ r = requests.get(
     "https://raw.githubusercontent.com/RhodiumGroup/helm-chart/master/values.yml"
 )
 
-yaml = YAML(type="safe", pure=True)
+yaml = YAML(typ="safe", pure=True)
 data = yaml.load(r.content)["dask-gateway"]["gateway"]["extraConfig"]["optionHandler"]
 
 # change float cores to int cores b/c float not allowed for local cluster
