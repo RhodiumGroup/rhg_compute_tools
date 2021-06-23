@@ -4,6 +4,10 @@ History
 
 .. current developments
 
+v1.1.4
+------
+* Add ``dask_kwargs`` to the ``rhg_compute_tools.xarray`` functions
+
 v1.1.3
 ------
 * Add ``retry_with_timeout`` to ``rhg_compute_tools.utils.py``
