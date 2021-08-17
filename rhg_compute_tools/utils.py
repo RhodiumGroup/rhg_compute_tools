@@ -316,8 +316,8 @@ def block_globals(obj, allowed_types=None, include_defaults=True, whitelist=None
         If allowed_types is provided, setting ``include_defaults`` to True will
         append the default list of functions, modules, and methods to the
         user-passed list of allowed types. Default is True, in which case
-        only the user-passed elements will be allowed. Setting to False will
-        allow only the types passed in ``allowed_types``.
+        any user-passed elements will be added to the defaults described above.
+        Setting to False will allow only the types passed in ``allowed_types``.
     whitelist : list of str, optional
         Optional list of variable names to whitelist. If a list is provided,
         global variables will be compared to elements of this list based on
