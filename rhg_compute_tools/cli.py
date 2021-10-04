@@ -41,3 +41,22 @@ def repdirstruc(src, dst, credentials):
     """
     client = authenticated_client(credentials)
     replicate_directory_structure_on_gcs(src, dst, client)
+
+
+@gcs.command()
+@click.argument("blob")
+@click.option("--project", default=None, required=False, help="Google Cloud project for bucket (default is inferred from your credentials)")
+def mkdirs(blob, project=None):
+    """
+    Create directory markers for all directories under a certain path on gcs
+
+    To set up authentication locally while developing, configure your google
+    cloud sdk with `gcloud init` then run:
+    
+        gcloud auth application-default login
+        
+    See https://googleapis.dev/python/google-api-core/latest/auth.html for
+    more information.
+
+    """
+    create_directories(blob, project=None, client=None)
