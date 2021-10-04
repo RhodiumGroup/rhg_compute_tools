@@ -3,8 +3,12 @@
 """Tools for interacting with GCS infrastructure."""
 
 import os
+import re
 import shlex
 import subprocess
+
+from pathlib import Path
+from tqdm.auto import tqdm
 from datetime import datetime as dt
 from os.path import basename, exists, isdir, join
 
@@ -333,3 +337,78 @@ def ls(dir_path):
     res = [x.split("/")[1].rstrip(r"\\n") for x in str(stdout).split(dir_url)[2:]]
 
     return res
+
+
+def _fetch_dirs(bucket, prefix=None):
+    """Return set of all directory paths within a GCS bucket blob names
+    Parameters
+    ----------
+    bucket : google.cloud.storage.bucket.Bucket
+    Returns
+    -------
+    all_dirs : set
+    """
+    all_dirs = set([])
+
+    for blob in bucket.list_blobs(prefix=prefix):
+        p = Path(blob.name).parent
+
+        # Skip root dir.
+        if p == Path("."):
+            continue
+
+        # Parse parent dirs in blob name.
+        for i in range(1, len(p.parts) + 1):
+            parentdir = str(Path(*p.parts[:i])) + "/"
+            all_dirs.add(parentdir)
+
+    return all_dirs
+
+
+def create_directory_markers(bucket_name, project=None, client=None, prefix=None):
+    """
+    Add directory markers in-place on a google cloud storage bucket
+    
+    Parameters
+    ----------
+    bucket_name : str
+        name of the Google Cloud Storage bucket
+    project : str or None, optional
+        name of the Google Cloud Platform project. If None, inferred
+        from the default project as determined by the client.
+    client : google.cloud.storage.client.Client or None, optional
+        Optionally pass a google.cloud.storage Client object to set
+        auth and settings
+    prefix : str or None, optional
+        Prefix (relative to bucket root) below which to create markers
+    """
+    if client is None:
+        client = storage.Client(project=project)
+
+    bucket = client.get_bucket(bucket_name)
+    assert bucket.exists()
+
+    # Create empty blob for any non-exist directories
+    dirs = _fetch_dirs(bucket, prefix=prefix)
+    if len(dirs) == 0:
+        return
+
+    for target_dir in tqdm(dirs, desc='creating markers'):
+        dir_blob = bucket.blob(target_dir)
+        if dir_blob.exists():
+            continue
+        # Create empty blob as dir placeholder.
+        dir_blob.upload_from_string(
+            "",
+            content_type="application/x-www-form-urlencoded;charset=UTF-8"
+        )
+
+
+def create_directories_under_blob(blob, project=None, client=None):
+    groups = re.match('gs://(?P<bucket>[^/]+)(?P<prefix>.*)$', blob)
+    bucket = groups.group('bucket')
+    prefix = groups.group('prefix').strip('/')
+    if len(prefix) == 0:
+        prefix = None
+    
+    create_directory_markers(bucket_name=bucket, project=project, client=client, prefix=prefix)
