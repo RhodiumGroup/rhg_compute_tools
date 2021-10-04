@@ -3,7 +3,7 @@ import click
 from rhg_compute_tools.gcs import (
     authenticated_client,
     replicate_directory_structure_on_gcs,
-    create_directories,
+    create_directories_under_blob,
 )
 
 
@@ -60,4 +60,4 @@ def mkdirs(blob, project=None):
     more information.
 
     """
-    create_directories(blob, project=None, client=None)
+    create_directories_under_blob(blob, project=None, client=None)
