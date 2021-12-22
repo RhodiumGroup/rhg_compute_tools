@@ -243,7 +243,7 @@ def datasets_from_delayed(futures, client=None, **client_kwargs):
 
     delayed_arrays = [
         {
-            k: client.submit(lambda x: x[k].data, futures[i], client_kwargs)
+            k: client.submit(lambda x: x[k].data, futures[i], **client_kwargs)
             for k in data_var_keys[i]
         }
         for i in range(len(futures))
