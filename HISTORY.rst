@@ -4,6 +4,14 @@ History
 
 .. current developments
 
+v1.3
+------
+New features:
+* Add `client_kwargs` option when starting a cluster with ``rhg_compute_tools.kubernetes.get_*_cluster``
+
+Bug fixes:
+* Fix typo preventing ``rhg_compute_tools.xarray.datasets_from_delayed`` from executing
+
 v1.2.1
 ------
 Bug fixes:
@@ -13,7 +21,6 @@ v1.2
 ----
 New features:
 * Adds google storage directory marker utilities and rctools gcs mkdirs command line app
-
 
 v1.1.4
 ------
