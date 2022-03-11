@@ -47,7 +47,7 @@ def dataarrays_from_delayed(futures, client=None, **client_kwargs):
         >>> client = dd.Client()
         >>> fut = client.map(build_arr, range(3))
         >>> arrs = dataarrays_from_delayed(fut, priority=1)
-        >>> arrs[-1]  # doctest: +ELLIPSIS
+        >>> arrs[-1]  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         <xarray.DataArray ...(x: 2)>
         dask.array<...shape=(2,), dtype=int64, chunksize=(2,), chunktype=numpy.ndarray>
         Coordinates:
@@ -57,7 +57,7 @@ def dataarrays_from_delayed(futures, client=None, **client_kwargs):
 
     .. code-block:: python
 
-        >>> xr.concat(arrs, dim='simulation') # doctest: +ELLIPSIS
+        >>> xr.concat(arrs, dim='simulation') # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         <xarray.DataArray ...(simulation: 3, x: 2)>
         dask.array<...shape=(3, 2), dtype=int64, chunksize=(1, 2), chunktype=numpy.ndarray>
         Coordinates:
@@ -152,7 +152,7 @@ def dataarray_from_delayed(futures, dim=None, client=None, **client_kwargs):
         ... )
         ...
 
-        >>> da  # doctest: +ELLIPSIS
+        >>> da  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         <xarray.DataArray ...(simulation: 3, x: 2)>
         dask.array<...shape=(3, 2), dtype=int64, chunksize=(1, 2), chunktype=numpy.ndarray>
         Coordinates:
@@ -210,7 +210,7 @@ def datasets_from_delayed(futures, client=None, **client_kwargs):
         >>> client = dd.Client()
         >>> fut = client.map(build_ds, range(3))
         >>> arrs = datasets_from_delayed(fut, priority=1)
-        >>> arrs[-1]  # doctest: +ELLIPSIS
+        >>> arrs[-1]  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         <xarray.Dataset>
         Dimensions:  (x: 2)
         Coordinates:
@@ -222,7 +222,7 @@ def datasets_from_delayed(futures, client=None, **client_kwargs):
 
     .. code-block:: python
 
-        >>> xr.concat(arrs, dim='y') # doctest: +ELLIPSIS
+        >>> xr.concat(arrs, dim='y') # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         <xarray.Dataset>
         Dimensions:  (x: 2, y: 3)
         Coordinates:
@@ -361,7 +361,7 @@ def dataset_from_delayed(futures, dim=None, client=None, **client_kwargs):
         >>> client = dd.Client()
         >>> fut = client.map(build_ds, range(3))
         >>> ds = dataset_from_delayed(fut, dim=pd.Index(range(3), name='y'), priority=1)
-        >>> ds
+        >>> ds # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         <xarray.Dataset>
         Dimensions:  (x: 2, y: 3)
         Coordinates:
@@ -516,7 +516,7 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
         ...     coords=[np.arange(4), np.arange(2), np.arange(5)],
         ... )
 
-        >>> da  # doctest: +NORMALIZE_WHITESPACE
+        >>> da # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         <xarray.DataArray (x: 4, y: 2, z: 5)>
         array([[[ 0,  1,  2,  3,  4],
                 [ 5,  6,  7,  8,  9]],
@@ -554,7 +554,7 @@ def choose_along_dim(da, dim, samples=1, expand=None, new_dim_name=None):
     .. code-block:: python
 
         >>> np.random.seed(1)
-        >>> choose_along_dim(da, 'z', samples=3)  # doctest: +NORMALIZE_WHITESPACE
+        >>> choose_along_dim(da, 'z', samples=3) # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         <xarray.DataArray (x: 4, y: 2, z: 3)>
         array([[[ 2,  3,  0],
                 [ 6,  5,  5]],
