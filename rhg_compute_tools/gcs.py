@@ -243,6 +243,9 @@ def cp(src, dest, flags=[]):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
 
+    if p.returncode != 0:
+        raise ValueError(stderr)
+
     # need to add directories if you were recursively copying a directory
     if isdir(src_gcs) and dest_gcs.startswith("/gcs/"):
         # now make directory blobs on gcs so that gcsfuse recognizes it
