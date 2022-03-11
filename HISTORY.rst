@@ -4,6 +4,17 @@ History
 
 .. current developments
 
+v1.2.1
+------
+Bug fixes:
+* raise error on gsutil nonzero status in ``rhg_compute_tools.gcs.cp`` (``PR #105``)
+
+v1.2
+----
+New features:
+* Adds google storage directory marker utilities and rctools gcs mkdirs command line app
+
+
 v1.1.4
 ------
 * Add ``dask_kwargs`` to the ``rhg_compute_tools.xarray`` functions
