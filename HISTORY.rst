@@ -7,7 +7,7 @@ History
 v1.2.1
 ------
 Bug fixes:
-* raise error on gsutil nonzero status in ``rhg_compute_tools.gcs.cp`` (:pull:`105`)
+* raise error on gsutil nonzero status in ``rhg_compute_tools.gcs.cp`` (``PR #105``)
 
 v1.2
 ----
