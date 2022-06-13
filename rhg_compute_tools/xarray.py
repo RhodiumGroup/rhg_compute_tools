@@ -1,8 +1,8 @@
 import functools
 
-import datetime
 import dask.array
 import numpy as np
+import pandas as pd
 import xarray as xr
 from dask import distributed as dd
 
@@ -642,6 +642,6 @@ def document_dataset(
         ds = ds.copy(deep=False)
 
     ds.attrs.update(rhg_compute_tools.utils.get_repo_state(repository_root))
-    ds.attrs["updated"] = datetime.datetime.now(tz=tz).strftime("%c (%Z)")
+    ds.attrs["updated"] = pd.Timestamp.now(tz=tz).strftime("%c (%Z)")
 
     return ds
