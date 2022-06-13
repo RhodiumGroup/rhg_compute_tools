@@ -1,10 +1,12 @@
 import functools
 
+import datetime
 import dask.array
 import numpy as np
 import xarray as xr
 from dask import distributed as dd
 
+import rhg_compute_tools.utils
 
 def dataarrays_from_delayed(futures, client=None, **client_kwargs):
     """
@@ -601,3 +603,45 @@ class random:
     @functools.wraps(choose_along_dim)
     def choice(self, *args, **kwargs):
         return choose_along_dim(self._xarray_obj, *args, **kwargs)
+
+def document_dataset(
+    ds: xr.Dataset,
+    repository_root : [str,  None] = None,
+    tz : str = "UTC",
+    inplace : bool = True,
+) -> xr.Dataset:
+    """
+    Add repository state and timestamp to dataset attrs
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+        Dataset to document
+    repository_root : str or None, optional
+        Path to the root of the repository to document. If ``None`` (default),
+        the current directory will be used, and will search parent directories
+        for a git repository. If a string is passed, parent directories will
+        not be searched - the directory must be a repository root which
+        conatins a ``.git`` directory.
+    tz : str, optional
+        time zone string parseable by datetime.datetime (e.g. "US/Pacific").
+        Default "UTC".
+    inplace : bool, optional
+        Whether to update the dataset's attributes in place (default) or to return 
+        a copy of the dataset.
+
+    Returns
+    -------
+    ds : xr.Dataset
+        Dataset with updated attribute information. A dataset is returned regardless
+        of arguments - the inplace argument determines whether the returned dataset
+        will be a shallow copy or the original object (default).
+    """
+
+    if not inplace:
+        ds = ds.copy(deep=False)
+
+    ds.attrs.update(rhg_compute_tools.utils.get_repo_state(repository_root))
+    ds.attrs["updated"] = datetime.datetime.now(tz=tz).strftime("%c (%Z)")
+
+    return ds
