@@ -558,3 +558,18 @@ def retry_with_timeout(func, retry_freq=10, n_tries=1, use_dask=True):
         )
 
     return inner
+
+def get_repo_state(repository_root : str) -> dict:
+    """Get a dictionary summarizing the current state of a repository."""
+
+    repo = git.Repo(str(repository_root))
+    c = repo.commit()
+
+    state = {}
+
+    state["repo_last_commit_hexsha"] = c.hexsha
+    state["repo_last_commit_author_name"] = c.author.name
+    state["repo_last_commit_author_email"] = c.author.email
+    state["repo_last_commit_timestamp"] = c.authored_datetime.strftime("%c (%z)")
+
+    return state
