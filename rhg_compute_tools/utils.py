@@ -596,7 +596,7 @@ def get_repo_state(repository_root : None) -> dict:
     
     try:
         # this fails on shallow clones
-        state["repo_active_branch"] = cloned_repo.active_branch
+        state["repo_active_branch"] = repo.active_branch
     except Exception:
         pass
 
