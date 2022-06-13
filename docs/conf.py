@@ -51,8 +51,8 @@ extensions = [
 ]
 
 extlinks = {
-    "issue": ("https://github.com/RhodiumGroup/rhg_compute_tools/issues/%s", "GH #"),
-    "pull": ("https://github.com/RhodiumGroup/rhg_compute_tools/pull/%s", "PR #"),
+    "issue": ("https://github.com/RhodiumGroup/rhg_compute_tools/issues/%s", "GH #%s"),
+    "pull": ("https://github.com/RhodiumGroup/rhg_compute_tools/pull/%s", "PR #%s"),
 }
 
 napoleon_numpy_docstring = True
