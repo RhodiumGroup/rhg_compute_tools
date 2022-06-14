@@ -47,16 +47,19 @@ def _append_docstring():
     return decorator
 
 
-def _get_cluster_dask_gateway(**kwargs):
+def _get_cluster_dask_gateway(client_kwargs={}, **kwargs):
     """
     Start dask.kubernetes cluster and dask.distributed client
 
     All arguments are optional. If not provided, defaults will be used. To view
     defaults, instantiate a :class:`dask_gateway.Gateway` object and call
-    `gateway.cluster_options()`.
+    `gateway.cluster_options()`. Kwargs are passed to the
+    :class:`dask_gateway.GatewayCluster` object, except for ``client_kwargs`` which are
+    passed to the :class:`distributed.Client` object.
 
     Parameters
     ----------
+    client
     name : str, optional
         Name of worker image to use (e.g. ``rhodium/worker:latest``). If ``None``
         (default), default to worker specified in ``template_path``.
@@ -166,7 +169,7 @@ def _get_cluster_dask_gateway(**kwargs):
         elif k == "extra_pod_tolerations":
             if (
                 "keep_default_tolerations" in kwargs.keys()
-                and kwargs["keep_default_tolerations"] == False
+                and not kwargs["keep_default_tolerations"]
             ):
                 base_tols = {}
             else:
@@ -191,7 +194,12 @@ def _get_cluster_dask_gateway(**kwargs):
         del new_kwargs["tag"]
 
     cluster = gateway.new_cluster(**new_kwargs)
-    client = cluster.get_client()
+
+    # this snippet replicates the GatewayCluster.get_client functionality but with the
+    # option to pass extra kwargs to the Client instantiation
+    client = dd.Client(cluster, **client_kwargs)
+    if not cluster.asynchronous:
+        cluster._clients.add(client)
 
     return client, cluster
 
