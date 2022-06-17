@@ -89,11 +89,11 @@ def test_retry_with_timeout():
         sleep(time)
         return None
 
-    def rpy2_func(time):
-        # include rpy2 command to make sure it can handle this
-        base = importr("base")
-        sleep(time)
-        return robjects.r["pi"]
+    # def rpy2_func(time):
+    #     # include rpy2 command to make sure it can handle this
+    #     base = importr("base")
+    #     sleep(time)
+    #     return robjects.r["pi"]
 
     def test_suite(test_func=wait_func, use_dask=True):
         with pytest.raises(TimeoutError):
@@ -117,8 +117,8 @@ def test_retry_with_timeout():
     # in this case, we can test the rpy2 command
     client = Client(threads_per_worker=1)
     client.submit(test_suite, use_dask=False).result()
-    if HAS_RPY2:
-        client.submit(test_suite, use_dask=True, test_func=rpy2_func).result()
+    # if HAS_RPY2:
+    #     client.submit(test_suite, use_dask=True, test_func=rpy2_func).result()
     client.close()
 
     # test to make sure the non-dask approach works if specified that way (e.g when

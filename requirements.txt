@@ -7,6 +7,8 @@ xarray
 matplotlib
 numpy
 bottleneck
+tqdm
+gitpython
 
 # testing packages
 pytest

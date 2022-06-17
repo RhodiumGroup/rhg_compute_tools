@@ -8,6 +8,7 @@ import os
 import queue
 import threading
 import types
+import git
 
 import dask.distributed as dd
 import numpy as np
@@ -558,3 +559,45 @@ def retry_with_timeout(func, retry_freq=10, n_tries=1, use_dask=True):
         )
 
     return inner
+
+def get_repo_state(repository_root : [str, None] = None) -> dict:
+    """
+    Get a dictionary summarizing the current state of a repository.
+
+    Parameters
+    ----------
+    repository_root : str or None
+        Path to the root of the repository to document. If ``None`` (default),
+        the current directory will be used, and will search parent directories
+        for a git repository. If a string is passed, parent directories will
+        not be searched - the directory must be a repository root which
+        conatins a ``.git`` directory.
+
+    Returns
+    -------
+    repo_state : dict
+        Dictionary of repository information documenting the current state
+    """
+    if repository_root is None:
+        repo = git.Repo(".", search_parent_directories=True)
+    else:
+        repo = git.Repo(str(repository_root))
+
+    c = repo.commit()
+
+    state = {}
+
+    state["repo_last_commit_hexsha"] = str(c.hexsha)
+    state["repo_last_commit_summary"] = str(c.summary)
+    state["repo_last_commit_author_name"] = str(c.author.name)
+    state["repo_last_commit_author_email"] = str(c.author.email)
+    state["repo_last_commit_timestamp"] = str(c.authored_datetime.strftime("%c (%z)"))
+    state["repo_remote_url"] = str(repo.remote("origin").url)
+    
+    try:
+        # this fails on shallow clones
+        state["repo_active_branch"] = repo.active_branch
+    except Exception:
+        pass
+
+    return state
