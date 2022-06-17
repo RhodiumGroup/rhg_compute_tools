@@ -4,6 +4,9 @@ History
 
 .. current developments
 
+Current version (unreleased)
+----------------------------
+
 * Add `utils.get_repo_state` and `xarray.document_dataset` functions
 * Drop explicit testing of dask.gateway rpy2 functionality
 * Bugfix in sphinx docs
