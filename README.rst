@@ -5,8 +5,11 @@ RHG Compute Tools
 
 .. image:: https://img.shields.io/pypi/v/rhg_compute_tools.svg
         :target: https://pypi.python.org/pypi/rhg_compute_tools
+        :alt: PyPi package version
 
 .. image:: https://github.com/RhodiumGroup/rhg_compute_tools/workflows/Python%20package/badge.svg
+        :target: https://github.com/RhodiumGroup/rhg_compute_tools/actions
+        :alt: Build status
 
 .. image:: https://readthedocs.org/projects/rhg-compute-tools/badge/?version=latest
         :target: https://rhg-compute-tools.readthedocs.io/en/latest/?badge=latest
