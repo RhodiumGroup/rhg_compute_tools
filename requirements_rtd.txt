@@ -1,0 +1,22 @@
+# core packages
+google-cloud-storage
+click
+dask-gateway
+pandas
+xarray
+matplotlib
+numpy
+bottleneck
+tqdm
+gitpython
+
+# testing packages
+pytest
+flake8
+coverage
+Sphinx
+pyyaml
+pytest-cov
+pytest-runner
+pytest-mock
+ruamel.yaml
