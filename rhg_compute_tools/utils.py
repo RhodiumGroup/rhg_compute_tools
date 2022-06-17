@@ -560,7 +560,7 @@ def retry_with_timeout(func, retry_freq=10, n_tries=1, use_dask=True):
 
     return inner
 
-def get_repo_state(repository_root : None) -> dict:
+def get_repo_state(repository_root : [str, None] = None) -> dict:
     """
     Get a dictionary summarizing the current state of a repository.
 
