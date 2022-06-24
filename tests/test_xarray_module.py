@@ -4,7 +4,7 @@ import xarray as xr
 import numpy as np
 import dask.distributed as dd
 
-import catalyst_compute_tools.xarray as ccxr
+import rhg_compute_tools.xarray as rhgxr
 
 @pytest.fixture(scope='session')
 def client():
@@ -24,7 +24,7 @@ def gen_dataset(i):
 def test_dataarrays_from_delayed(client):
     futures = client.map(gen_dataarray, range(10))
 
-    res = xr.concat(ccxr.datasets_from_delayed(futures), dim='z').compute()
+    res = xr.concat(rhgxr.datasets_from_delayed(futures), dim='z').compute()
     expected = xr.DataArray(
         np.arange(1000).reshape(10, 10, 10, order='F'),
         dims=list('xyz'),
@@ -36,7 +36,7 @@ def test_dataarrays_from_delayed(client):
 def test_dataset_from_delayed(client):
     futures = client.map(gen_dataset, range(10))
 
-    res = xr.concat(ccxr.datasets_from_delayed(futures), dim='z').compute()
+    res = xr.concat(rhgxr.datasets_from_delayed(futures), dim='z').compute()
     expected = xr.Dataset(
         {
             'a': xr.DataArray(
