@@ -24,7 +24,7 @@ def gen_dataset(i):
 def test_dataarrays_from_delayed(client):
     futures = client.map(gen_dataarray, range(10))
 
-    res = xr.concat(rhgxr.datasets_from_delayed(futures), dim='z').compute()
+    res = xr.concat(rhgxr.dataarrays_from_delayed(futures), dim='z').compute()
     expected = xr.DataArray(
         np.arange(1000).reshape(10, 10, 10, order='F'),
         dims=list('xyz'),
