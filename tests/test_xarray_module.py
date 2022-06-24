@@ -21,7 +21,7 @@ def gen_dataarray(i):
 def gen_dataset(i):
     return xr.Dataset({'a': gen_dataarray(i)})
 
-def test_dataarrays_from_delayed(client)
+def test_dataarrays_from_delayed(client):
     futures = client.map(gen_dataarray, range(10))
 
     res = xr.concat(ccxr.datasets_from_delayed(futures), dim='z').compute()
