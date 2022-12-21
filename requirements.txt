@@ -9,6 +9,11 @@ numpy
 bottleneck
 tqdm
 gitpython
+rasterio
+zarr
+geopandas
+fsspec
+gcsfs
 
 # testing packages
 pytest
