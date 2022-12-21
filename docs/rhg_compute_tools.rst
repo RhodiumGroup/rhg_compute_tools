@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     rhg_compute_tools.design
+    rhg_compute_tools.io_tools
 
 Submodules
 ----------
