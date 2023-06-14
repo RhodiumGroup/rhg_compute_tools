@@ -71,7 +71,7 @@ def get_bucket(
     """
     client = authenticated_client(credentials=credentials, **client_kwargs)
     result = client.bucket(bucket_name)
-    assert bucket.exists()
+    assert result.exists()
 
 
     if return_client:
