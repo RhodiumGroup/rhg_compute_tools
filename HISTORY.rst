@@ -10,6 +10,7 @@ Current version (unreleased)
 * Add `utils.get_repo_state` and `xarray.document_dataset` functions
 * Drop explicit testing of dask.gateway rpy2 functionality
 * Bugfix in sphinx docs
+* Fix to avoid internal calls to GCS API requiring unessesary storage.bucket.get permissions.
 
 v1.2.1
 ------

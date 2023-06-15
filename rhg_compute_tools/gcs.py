@@ -70,7 +70,7 @@ def get_bucket(
     bucket : :py:class:`google.cloud.storage.bucket.Bucket`
     """
     client = authenticated_client(credentials=credentials, **client_kwargs)
-    result = client.get_bucket(bucket_name)
+    result = client.bucket(bucket_name)
 
     if return_client:
         result = (result, client)
@@ -170,7 +170,7 @@ def replicate_directory_structure_on_gcs(src, dst, client):
     bucket_name = dst.split("/")[0]
     blob_path = "/".join(dst.split("/")[1:])
 
-    bucket = client.get_bucket(bucket_name)
+    bucket = client.bucket(bucket_name)
 
     for d, dirnames, files in os.walk(src):
         dest_path = os.path.join(blob_path, os.path.relpath(d, src))
@@ -388,8 +388,7 @@ def create_directory_markers(bucket_name, project=None, client=None, prefix=None
     if client is None:
         client = storage.Client(project=project)
 
-    bucket = client.get_bucket(bucket_name)
-    assert bucket.exists()
+    bucket = client.bucket(bucket_name)
 
     # Create empty blob for any non-exist directories
     dirs = _fetch_dirs(bucket, prefix=prefix)
