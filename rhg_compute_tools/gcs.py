@@ -71,8 +71,6 @@ def get_bucket(
     """
     client = authenticated_client(credentials=credentials, **client_kwargs)
     result = client.bucket(bucket_name)
-    assert result.exists()
-
 
     if return_client:
         result = (result, client)
@@ -173,7 +171,6 @@ def replicate_directory_structure_on_gcs(src, dst, client):
     blob_path = "/".join(dst.split("/")[1:])
 
     bucket = client.bucket(bucket_name)
-    assert bucket.exists()
 
     for d, dirnames, files in os.walk(src):
         dest_path = os.path.join(blob_path, os.path.relpath(d, src))
@@ -392,7 +389,6 @@ def create_directory_markers(bucket_name, project=None, client=None, prefix=None
         client = storage.Client(project=project)
 
     bucket = client.bucket(bucket_name)
-    assert bucket.exists()
 
     # Create empty blob for any non-exist directories
     dirs = _fetch_dirs(bucket, prefix=prefix)
