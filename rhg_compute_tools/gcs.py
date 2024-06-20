@@ -90,7 +90,7 @@ def _get_path_types(src, dest):
     if src_gs.startswith("/gcs/"):
         src_gs = src.replace("/gcs/", "gs://")
     if src_gcs.startswith("gs://"):
-        src_gs = src.replace("gs://", "/gcs/")
+        src_gcs = src.replace("gs://", "/gcs/")
     if dest_gs.startswith("/gcs/"):
         dest_gs = dest.replace("/gcs/", "gs://")
     if dest_gcs.startswith("gs://"):
