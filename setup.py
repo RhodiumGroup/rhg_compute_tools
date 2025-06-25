@@ -30,7 +30,7 @@ setup(
     use_scm_version=True,
     description="Tools for using compute.rhg.com and compute.impactlab.org",
     long_description=readme,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/plain",
     author="Michael Delgado",
     author_email="mdelgado@rhg.com",
     url="https://github.com/RhodiumGroup/rhg_compute_tools",
