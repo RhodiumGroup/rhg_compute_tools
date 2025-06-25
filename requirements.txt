@@ -29,6 +29,5 @@ pytest-mock
 twine
 dask-gateway-server[local]
 ruamel.yaml
-rpy2
 
 # setuptools_scm
