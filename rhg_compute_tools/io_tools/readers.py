@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import geopandas as gpd
-from zarr.errors import GroupNotFoundError
 from contextlib import contextmanager
 import contextlib
 
