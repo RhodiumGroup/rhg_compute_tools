@@ -13,6 +13,12 @@ from contextlib import contextmanager
 import contextlib
 
 try:
+    from zarr.errors import GroupNotFoundError
+except ImportError:
+    # zarr.__version__ >= 3.0 just uses FileNotFoundError
+    GroupNotFoundError = FileNotFoundError
+
+try:
     from gcsfs.retry import HttpError as GCSFSHttpError
 except ImportError:
     from gcsfs.utils import HttpError as GCSFSHttpError
