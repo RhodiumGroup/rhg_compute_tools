@@ -22,6 +22,7 @@ requirements = [
     "matplotlib",
     "numpy",
     "bottleneck",
+    "importlib_metadata; python_version<'3.8'",
     # TODO: put package requirements here
 ]
 
